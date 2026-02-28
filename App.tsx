@@ -200,11 +200,7 @@ function App() {
   const [isGeneratingMetadata, setIsGeneratingMetadata] = useState(false);
   const [isGeneratingThumbnail, setIsGeneratingThumbnail] = useState(false);
   const [promptCopied, setPromptCopied] = useState(false);
-  
-  // BYOK State
-  const [isApiKeySet, setIsApiKeySet] = useState<boolean>(true); // Default true to prevent flash
-  const [showApiKeyModal, setShowApiKeyModal] = useState(false);
-  const [apiKeyInput, setApiKeyInput] = useState('');
+  const [isApiKeySelected, setIsApiKeySelected] = useState<boolean | null>(null);
   
   // Refs
   const resultRef = useRef<HTMLDivElement>(null);
@@ -215,32 +211,26 @@ function App() {
 
   // Check API Key on mount
   useEffect(() => {
-    const key = localStorage.getItem('gemini_api_key');
-    if (!key) {
-      setIsApiKeySet(false);
-      setShowApiKeyModal(true);
-    } else {
-      setIsApiKeySet(true);
-    }
+    const checkApiKey = async () => {
+      if (window.aistudio && window.aistudio.hasSelectedApiKey) {
+        const hasKey = await window.aistudio.hasSelectedApiKey();
+        setIsApiKeySelected(hasKey);
+      } else {
+        setIsApiKeySelected(true); // Fallback if not in AI Studio
+      }
+    };
+    checkApiKey();
   }, []);
 
-  const handleSaveApiKey = () => {
-    if (apiKeyInput.trim()) {
-      localStorage.setItem('gemini_api_key', apiKeyInput.trim());
-      setIsApiKeySet(true);
-      setShowApiKeyModal(false);
-      setApiKeyInput('');
+  const handleSelectApiKey = async () => {
+    if (window.aistudio && window.aistudio.openSelectKey) {
+      try {
+        await window.aistudio.openSelectKey();
+        setIsApiKeySelected(true); // Assume success to mitigate race condition
+      } catch (error) {
+        console.error("Failed to open API key selector", error);
+      }
     }
-  };
-
-  const handleRemoveApiKey = () => {
-    localStorage.removeItem('gemini_api_key');
-    setIsApiKeySet(false);
-    setApiKeyInput('');
-  };
-
-  const handleOpenApiKeyModal = () => {
-    setShowApiKeyModal(true);
   };
 
   // Cleanup speech on unmount
@@ -476,40 +466,33 @@ function App() {
       
       {/* Header */}
       <header className="fixed top-0 w-full z-50 bg-zinc-950/80 backdrop-blur-md border-b border-zinc-800/50">
-        <div className="max-w-5xl mx-auto px-6 py-3 flex justify-between items-center min-h-[4rem]">
+        <div className="max-w-5xl mx-auto px-6 h-16 flex justify-between items-center">
           <h1 className="text-lg font-medium tracking-tight text-white">
             Generative Content
           </h1>
           <div className="flex items-center gap-3">
             {/* API Key Button */}
             <button
-              onClick={handleOpenApiKeyModal}
-              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-medium border transition-all ${
-                isApiKeySet 
-                  ? 'bg-zinc-900 border-zinc-800 text-zinc-400 hover:text-white hover:border-zinc-700' 
-                  : 'bg-indigo-600/20 border-indigo-500/50 text-indigo-400 hover:bg-indigo-600/30'
-              }`}
+              onClick={handleSelectApiKey}
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-medium bg-zinc-900 border border-zinc-800 text-zinc-400 hover:text-white hover:border-zinc-700 transition-all"
             >
               <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 2l-2 2m-7.61 7.61a5.5 5.5 0 1 1-7.778 7.778 5.5 5.5 0 0 1 7.777-7.777zm0 0L15.5 7.5m0 0l3 3L22 7l-3-3m-3.5 3.5L19 4"></path></svg>
-              {isApiKeySet ? 'API Key' : 'Set API Key'}
+              API Key
             </button>
-            
-            <div className="flex flex-col gap-1.5 items-end">
-              {/* Language Toggle */}
-              <div className="flex bg-zinc-900 rounded-md p-1 border border-zinc-800">
-                <button
-                  onClick={() => setLanguage('en')}
-                  className={`px-3 py-1 rounded text-xs font-medium transition-all ${language === 'en' ? 'bg-zinc-800 text-white shadow-sm' : 'text-zinc-500 hover:text-zinc-300'}`}
-                >
-                  EN
-                </button>
-                <button
-                  onClick={() => setLanguage('id')}
-                  className={`px-3 py-1 rounded text-xs font-medium transition-all ${language === 'id' ? 'bg-zinc-800 text-white shadow-sm' : 'text-zinc-500 hover:text-zinc-300'}`}
-                >
-                  ID
-                </button>
-              </div>
+             {/* Language Toggle */}
+            <div className="flex bg-zinc-900 rounded-md p-1 border border-zinc-800">
+              <button
+                onClick={() => setLanguage('en')}
+                className={`px-3 py-1 rounded text-xs font-medium transition-all ${language === 'en' ? 'bg-zinc-800 text-white shadow-sm' : 'text-zinc-500 hover:text-zinc-300'}`}
+              >
+                EN
+              </button>
+              <button
+                onClick={() => setLanguage('id')}
+                className={`px-3 py-1 rounded text-xs font-medium transition-all ${language === 'id' ? 'bg-zinc-800 text-white shadow-sm' : 'text-zinc-500 hover:text-zinc-300'}`}
+              >
+                ID
+              </button>
             </div>
           </div>
         </div>
@@ -911,60 +894,24 @@ function App() {
         )}
 
         {/* API Key Popup Overlay */}
-        {showApiKeyModal && (
+        {isApiKeySelected === false && (
           <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/80 backdrop-blur-sm p-4 animate-fadeIn">
-            <div className="bg-zinc-900 border border-zinc-800 p-8 rounded-2xl max-w-md w-full text-center shadow-2xl relative">
-              
-              {isApiKeySet && (
-                <button 
-                  onClick={() => setShowApiKeyModal(false)}
-                  className="absolute top-4 right-4 text-zinc-500 hover:text-white transition-colors"
-                >
-                  <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
-                </button>
-              )}
-
+            <div className="bg-zinc-900 border border-zinc-800 p-8 rounded-2xl max-w-md w-full text-center shadow-2xl">
               <div className="w-16 h-16 bg-indigo-500/10 text-indigo-400 rounded-full flex items-center justify-center mx-auto mb-6">
                 <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M21 2l-2 2m-7.61 7.61a5.5 5.5 0 1 1-7.778 7.778 5.5 5.5 0 0 1 7.777-7.777zm0 0L15.5 7.5m0 0l3 3L22 7l-3-3m-3.5 3.5L19 4"></path></svg>
               </div>
-              <h2 className="text-2xl font-bold text-white mb-3">
-                {isApiKeySet ? 'Manage API Key' : 'API Key Required'}
-              </h2>
-              <p className="text-zinc-400 mb-6 leading-relaxed text-sm">
-                To use Narrative Nexus, enter your Google Gemini API key. 
-                <br/>
-                <span className="text-xs opacity-70 mt-2 block">Your key is stored locally in your browser and is never sent to our servers.</span>
-                <a href="https://aistudio.google.com/app/apikey" target="_blank" rel="noreferrer" className="text-indigo-400 hover:underline mt-2 inline-block">Get your free API key here</a>.
+              <h2 className="text-2xl font-bold text-white mb-3">API Key Required</h2>
+              <p className="text-zinc-400 mb-8 leading-relaxed text-sm">
+                To use Narrative Nexus and generate stories, you need to connect your Google Gemini API key. 
+                <br/><br/>
+                <a href="https://ai.google.dev/gemini-api/docs/billing" target="_blank" rel="noreferrer" className="text-indigo-400 hover:underline">Learn more about billing and API keys</a>.
               </p>
-              
-              <div className="text-left mb-6">
-                <input
-                  type="password"
-                  placeholder="AIzaSy..."
-                  value={apiKeyInput}
-                  onChange={(e) => setApiKeyInput(e.target.value)}
-                  className="w-full bg-zinc-950 border border-zinc-700 rounded-lg px-4 py-3 text-zinc-200 focus:ring-1 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition-all"
-                />
-              </div>
-
-              <div className="flex flex-col gap-3">
-                <button
-                  onClick={handleSaveApiKey}
-                  disabled={!apiKeyInput.trim()}
-                  className="w-full bg-white text-black hover:bg-zinc-200 disabled:opacity-50 disabled:cursor-not-allowed font-medium py-3 px-4 rounded-lg transition-colors"
-                >
-                  Save API Key
-                </button>
-                
-                {isApiKeySet && (
-                  <button
-                    onClick={handleRemoveApiKey}
-                    className="w-full bg-red-500/10 text-red-400 hover:bg-red-500/20 font-medium py-3 px-4 rounded-lg transition-colors"
-                  >
-                    Remove Current Key
-                  </button>
-                )}
-              </div>
+              <button
+                onClick={handleSelectApiKey}
+                className="w-full bg-white text-black hover:bg-zinc-200 font-medium py-3 px-4 rounded-lg transition-colors"
+              >
+                Connect API Key
+              </button>
             </div>
           </div>
         )}

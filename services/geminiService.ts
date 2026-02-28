@@ -1,13 +1,7 @@
 import { GoogleGenAI, Type, Schema } from "@google/genai";
 import { ThemeType, FullStory, DurationType, Language, SocialMetadata, ThumbnailIdeas } from '../types';
 
-const getAIClient = () => {
-  const apiKey = localStorage.getItem('gemini_api_key');
-  if (!apiKey) {
-    throw new Error("API Key not found. Please set your Gemini API Key.");
-  }
-  return new GoogleGenAI({ apiKey });
-};
+const getAIClient = () => new GoogleGenAI({ apiKey: process.env.API_KEY as string });
 
 const storySchema: Schema = {
   type: Type.OBJECT,
@@ -210,7 +204,7 @@ Rules:
 If requested, adjust drama, suspense, pacing, or emotional intensity.
 `;
 
-const MODEL_NAME = 'gemini-3-flash-preview';
+const MODEL_NAME = "gemini-3-flash-preview";
 
 export const generateStory = async (theme: ThemeType, duration: DurationType, language: Language, additionalInfo?: string): Promise<FullStory> => {
   let lengthInstruction = "";
@@ -249,12 +243,13 @@ export const generateStory = async (theme: ThemeType, duration: DurationType, la
 
   try {
     const response = await getAIClient().models.generateContent({
-      model: getModelName(aiModel),
+      model: MODEL_NAME,
       contents: prompt,
       config: {
         systemInstruction: SYSTEM_INSTRUCTION,
         responseMimeType: "application/json",
         responseSchema: storySchema,
+        thinkingConfig: { thinkingBudget: 0 } 
       }
     });
 
@@ -330,6 +325,7 @@ export const rewriteStory = async (currentStory: FullStory, language: Language):
         systemInstruction: SYSTEM_INSTRUCTION,
         responseMimeType: "application/json",
         responseSchema: storySchema,
+        thinkingConfig: { thinkingBudget: 0 } 
       }
     });
 

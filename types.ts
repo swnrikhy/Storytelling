@@ -1,5 +1,14 @@
 export type Language = 'en' | 'id';
 
+declare global {
+  interface Window {
+    aistudio?: {
+      hasSelectedApiKey: () => Promise<boolean>;
+      openSelectKey: () => Promise<void>;
+    };
+  }
+}
+
 export enum ThemeType {
   HORROR = 'Horror',
   ADVENTURE = 'Adventure/Travel',
