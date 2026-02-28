@@ -1,4 +1,5 @@
 export type Language = 'en' | 'id';
+export type AIModel = 'flash' | 'pro';
 
 export enum ThemeType {
   HORROR = 'Horror',

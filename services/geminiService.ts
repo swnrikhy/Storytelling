@@ -1,5 +1,5 @@
 import { GoogleGenAI, Type, Schema } from "@google/genai";
-import { ThemeType, FullStory, DurationType, Language, SocialMetadata, ThumbnailIdeas } from '../types';
+import { ThemeType, FullStory, DurationType, Language, SocialMetadata, ThumbnailIdeas, AIModel } from '../types';
 
 const getAIClient = () => {
   const apiKey = localStorage.getItem('gemini_api_key');
@@ -210,9 +210,9 @@ Rules:
 If requested, adjust drama, suspense, pacing, or emotional intensity.
 `;
 
-const MODEL_NAME = "gemini-3-flash-preview";
+const getModelName = (model: AIModel) => model === 'pro' ? 'gemini-3.1-pro-preview' : 'gemini-3-flash-preview';
 
-export const generateStory = async (theme: ThemeType, duration: DurationType, language: Language, additionalInfo?: string): Promise<FullStory> => {
+export const generateStory = async (theme: ThemeType, duration: DurationType, language: Language, additionalInfo?: string, aiModel: AIModel = 'flash'): Promise<FullStory> => {
   let lengthInstruction = "";
   switch (duration) {
     case DurationType.SHORT:
@@ -269,7 +269,7 @@ export const generateStory = async (theme: ThemeType, duration: DurationType, la
   }
 };
 
-export const generateHooks = async (topic: string, theme: string, language: Language): Promise<string[]> => {
+export const generateHooks = async (topic: string, theme: string, language: Language, aiModel: AIModel = 'flash'): Promise<string[]> => {
   const languageInstruction = language === 'id' 
     ? "OUTPUT MUST BE IN INDONESIAN (BAHASA INDONESIA)."
     : "OUTPUT MUST BE IN ENGLISH.";
@@ -287,7 +287,7 @@ export const generateHooks = async (topic: string, theme: string, language: Lang
 
   try {
     const response = await getAIClient().models.generateContent({
-      model: MODEL_NAME,
+      model: getModelName(aiModel),
       contents: prompt,
       config: {
         systemInstruction: SYSTEM_INSTRUCTION,
@@ -306,7 +306,7 @@ export const generateHooks = async (topic: string, theme: string, language: Lang
   }
 };
 
-export const rewriteStory = async (currentStory: FullStory, language: Language): Promise<FullStory> => {
+export const rewriteStory = async (currentStory: FullStory, language: Language, aiModel: AIModel = 'flash'): Promise<FullStory> => {
   const languageInstruction = language === 'id' 
     ? "Maintain the story in INDONESIAN (BAHASA INDONESIA)."
     : "Maintain the story in ENGLISH.";
@@ -325,7 +325,7 @@ export const rewriteStory = async (currentStory: FullStory, language: Language):
 
   try {
     const response = await getAIClient().models.generateContent({
-      model: MODEL_NAME,
+      model: getModelName(aiModel),
       contents: prompt,
       config: {
         systemInstruction: SYSTEM_INSTRUCTION,
@@ -345,7 +345,7 @@ export const rewriteStory = async (currentStory: FullStory, language: Language):
   }
 };
 
-export const generateSocialMetadata = async (story: FullStory, language: Language): Promise<SocialMetadata> => {
+export const generateSocialMetadata = async (story: FullStory, language: Language, aiModel: AIModel = 'flash'): Promise<SocialMetadata> => {
   const languageInstruction = language === 'id' 
     ? "OUTPUT MUST BE IN INDONESIAN (BAHASA INDONESIA)."
     : "OUTPUT MUST BE IN ENGLISH.";
@@ -368,7 +368,7 @@ export const generateSocialMetadata = async (story: FullStory, language: Languag
 
   try {
     const response = await getAIClient().models.generateContent({
-      model: MODEL_NAME,
+      model: getModelName(aiModel),
       contents: prompt,
       config: {
         systemInstruction: "You are a Social Media Manager expert in SEO and Virality.",
@@ -387,7 +387,7 @@ export const generateSocialMetadata = async (story: FullStory, language: Languag
   }
 };
 
-export const generateThumbnail = async (story: FullStory, language: Language): Promise<ThumbnailIdeas> => {
+export const generateThumbnail = async (story: FullStory, language: Language, aiModel: AIModel = 'flash'): Promise<ThumbnailIdeas> => {
   const textOverlayInstruction = language === 'id'
     ? "The 'textOverlays' MUST be in Indonesian."
     : "The 'textOverlays' MUST be in English.";
@@ -408,7 +408,7 @@ export const generateThumbnail = async (story: FullStory, language: Language): P
 
   try {
     const response = await getAIClient().models.generateContent({
-        model: MODEL_NAME,
+        model: getModelName(aiModel),
         contents: prompt,
         config: {
           systemInstruction: "You are a YouTube Thumbnail expert. You know what makes people click.",

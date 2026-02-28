@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { ThemeType, FullStory, DurationType, Language, SocialMetadata, ThumbnailIdeas } from './types';
+import { ThemeType, FullStory, DurationType, Language, SocialMetadata, ThumbnailIdeas, AIModel } from './types';
 import { generateStory, generateHooks, rewriteStory, generateSocialMetadata, generateThumbnail } from './services/geminiService';
 import { ModuleCard } from './components/ModuleCard';
 
@@ -184,6 +184,8 @@ const translations = {
 
 function App() {
   const [language, setLanguage] = useState<Language>('en');
+  const [aiModel, setAiModel] = useState<AIModel>('flash');
+  const [showModelDropdown, setShowModelDropdown] = useState(false);
   const [selectedTheme, setSelectedTheme] = useState<ThemeType>(ThemeType.HISTORY);
   const [selectedDuration, setSelectedDuration] = useState<DurationType>(DurationType.SHORT);
   const [additionalContext, setAdditionalContext] = useState('');
@@ -256,7 +258,7 @@ function App() {
     setSocialMetadata(null);
     setThumbnailIdeas(null);
     try {
-      const result = await generateStory(selectedTheme, selectedDuration, language, additionalContext);
+      const result = await generateStory(selectedTheme, selectedDuration, language, additionalContext, aiModel);
       setStory(result);
       setTimeout(() => {
         resultRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -272,7 +274,7 @@ function App() {
     if (!story) return;
     setIsRewriting(true);
     try {
-      const result = await rewriteStory(story, language);
+      const result = await rewriteStory(story, language, aiModel);
       setStory(result);
     } catch (error) {
       alert(t.failedRewrite);
@@ -284,7 +286,7 @@ function App() {
   const handleGenerateHooks = async () => {
     setIsGeneratingHooks(true);
     try {
-      const hooks = await generateHooks(additionalContext, selectedTheme, language);
+      const hooks = await generateHooks(additionalContext, selectedTheme, language, aiModel);
       setGeneratedHooks(hooks);
     } catch (error) {
       alert(t.failedHooks);
@@ -297,7 +299,7 @@ function App() {
     if (!story) return;
     setIsGeneratingMetadata(true);
     try {
-      const metadata = await generateSocialMetadata(story, language);
+      const metadata = await generateSocialMetadata(story, language, aiModel);
       setSocialMetadata(metadata);
       setTimeout(() => {
         distributionRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -314,7 +316,7 @@ function App() {
     if (!story) return;
     setIsGeneratingThumbnail(true);
     try {
-      const ideas = await generateThumbnail(story, language);
+      const ideas = await generateThumbnail(story, language, aiModel);
       setThumbnailIdeas(ideas);
       setTimeout(() => {
         distributionRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -476,7 +478,7 @@ function App() {
       
       {/* Header */}
       <header className="fixed top-0 w-full z-50 bg-zinc-950/80 backdrop-blur-md border-b border-zinc-800/50">
-        <div className="max-w-5xl mx-auto px-6 h-16 flex justify-between items-center">
+        <div className="max-w-5xl mx-auto px-6 py-3 flex justify-between items-center min-h-[4rem]">
           <h1 className="text-lg font-medium tracking-tight text-white">
             Generative Content
           </h1>
@@ -493,20 +495,76 @@ function App() {
               <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 2l-2 2m-7.61 7.61a5.5 5.5 0 1 1-7.778 7.778 5.5 5.5 0 0 1 7.777-7.777zm0 0L15.5 7.5m0 0l3 3L22 7l-3-3m-3.5 3.5L19 4"></path></svg>
               {isApiKeySet ? 'API Key' : 'Set API Key'}
             </button>
-             {/* Language Toggle */}
-            <div className="flex bg-zinc-900 rounded-md p-1 border border-zinc-800">
-              <button
-                onClick={() => setLanguage('en')}
-                className={`px-3 py-1 rounded text-xs font-medium transition-all ${language === 'en' ? 'bg-zinc-800 text-white shadow-sm' : 'text-zinc-500 hover:text-zinc-300'}`}
-              >
-                EN
-              </button>
-              <button
-                onClick={() => setLanguage('id')}
-                className={`px-3 py-1 rounded text-xs font-medium transition-all ${language === 'id' ? 'bg-zinc-800 text-white shadow-sm' : 'text-zinc-500 hover:text-zinc-300'}`}
-              >
-                ID
-              </button>
+            
+            <div className="flex flex-col gap-1.5 items-end">
+              {/* Language Toggle */}
+              <div className="flex bg-zinc-900 rounded-md p-1 border border-zinc-800">
+                <button
+                  onClick={() => setLanguage('en')}
+                  className={`px-3 py-1 rounded text-xs font-medium transition-all ${language === 'en' ? 'bg-zinc-800 text-white shadow-sm' : 'text-zinc-500 hover:text-zinc-300'}`}
+                >
+                  EN
+                </button>
+                <button
+                  onClick={() => setLanguage('id')}
+                  className={`px-3 py-1 rounded text-xs font-medium transition-all ${language === 'id' ? 'bg-zinc-800 text-white shadow-sm' : 'text-zinc-500 hover:text-zinc-300'}`}
+                >
+                  ID
+                </button>
+              </div>
+              
+              {/* AI Model Dropdown */}
+              <div className="relative">
+                <button
+                  onClick={() => setShowModelDropdown(!showModelDropdown)}
+                  className="flex items-center justify-center w-full bg-zinc-900 rounded-md p-1 border border-zinc-800 text-zinc-400 hover:text-white transition-all group"
+                  title="Select AI Model"
+                >
+                  <div className="flex items-center gap-2 px-2 py-1">
+                    {aiModel === 'flash' ? (
+                      <span className="text-amber-400 flex items-center gap-1.5 text-xs font-medium">
+                        {Icons.Lightning} Flash
+                      </span>
+                    ) : (
+                      <span className="text-indigo-400 flex items-center gap-1.5 text-xs font-medium">
+                        {Icons.Sparkles} Pro
+                      </span>
+                    )}
+                    <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={`transition-transform ${showModelDropdown ? 'rotate-180' : ''}`}><polyline points="6 9 12 15 18 9"></polyline></svg>
+                  </div>
+                </button>
+                
+                {showModelDropdown && (
+                  <>
+                    <div 
+                      className="fixed inset-0 z-40" 
+                      onClick={() => setShowModelDropdown(false)}
+                    />
+                    <div className="absolute right-0 mt-1 w-48 bg-zinc-900 border border-zinc-800 rounded-md shadow-xl overflow-hidden z-50">
+                      <button
+                        onClick={() => { setAiModel('flash'); setShowModelDropdown(false); }}
+                        className={`w-full flex items-center gap-3 px-4 py-3 text-sm text-left transition-colors ${aiModel === 'flash' ? 'bg-zinc-800 text-white' : 'text-zinc-400 hover:bg-zinc-800/50 hover:text-zinc-200'}`}
+                      >
+                        <span className="text-amber-400">{Icons.Lightning}</span>
+                        <div>
+                          <div className="font-medium">Gemini Flash</div>
+                          <div className="text-xs opacity-70">Fast & efficient</div>
+                        </div>
+                      </button>
+                      <button
+                        onClick={() => { setAiModel('pro'); setShowModelDropdown(false); }}
+                        className={`w-full flex items-center gap-3 px-4 py-3 text-sm text-left transition-colors ${aiModel === 'pro' ? 'bg-zinc-800 text-white' : 'text-zinc-400 hover:bg-zinc-800/50 hover:text-zinc-200'}`}
+                      >
+                        <span className="text-indigo-400">{Icons.Sparkles}</span>
+                        <div>
+                          <div className="font-medium">Gemini Pro</div>
+                          <div className="text-xs opacity-70">Advanced reasoning</div>
+                        </div>
+                      </button>
+                    </div>
+                  </>
+                )}
+              </div>
             </div>
           </div>
         </div>
