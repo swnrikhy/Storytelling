@@ -6,8 +6,8 @@
   "scripts": {
     "dev": "vite",
     "build": "vite build",
-    "preview": "vite preview",
-    "lint": "tsc --noEmit"
+    "lint": "tsc && vite build",
+    "preview": "vite preview"
   },
   "dependencies": {
     "react": "^19.2.4",

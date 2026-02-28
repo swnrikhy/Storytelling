@@ -1,7 +1,8 @@
 import { GoogleGenAI, Type, Schema } from "@google/genai";
 import { ThemeType, FullStory, DurationType, Language, SocialMetadata, ThumbnailIdeas } from '../types';
 
-const getAIClient = () => new GoogleGenAI({ apiKey: (process.env.API_KEY || process.env.GEMINI_API_KEY) as string });
+const apiKey = process.env.GEMINI_API_KEY;
+const ai = new GoogleGenAI({ apiKey: apiKey });
 
 const storySchema: Schema = {
   type: Type.OBJECT,
@@ -12,7 +13,6 @@ const storySchema: Schema = {
       type: Type.OBJECT,
       properties: {
         content: { type: Type.STRING, description: "The narrative text for the hook." },
-        visualPrompt: { type: Type.STRING, description: "A detailed visual prompt for an image/video for this section." },
         metadata: {
           type: Type.OBJECT,
           properties: {
@@ -25,13 +25,12 @@ const storySchema: Schema = {
           required: ["hookType", "emotionalTrigger", "patternInterrupt", "scrollStopPhrase", "audienceTargeting"]
         }
       },
-      required: ["content", "visualPrompt", "metadata"]
+      required: ["content", "metadata"]
     },
     context: {
       type: Type.OBJECT,
       properties: {
         content: { type: Type.STRING, description: "The narrative text for the context/setup." },
-        visualPrompt: { type: Type.STRING, description: "A detailed visual prompt for an image/video for this section." },
         metadata: {
           type: Type.OBJECT,
           properties: {
@@ -44,13 +43,12 @@ const storySchema: Schema = {
           required: ["characterIntro", "situationSummary", "timeReference", "stakes", "setting"]
         }
       },
-      required: ["content", "visualPrompt", "metadata"]
+      required: ["content", "metadata"]
     },
     problem: {
       type: Type.OBJECT,
       properties: {
         content: { type: Type.STRING, description: "The narrative text for the problem." },
-        visualPrompt: { type: Type.STRING, description: "A detailed visual prompt for an image/video for this section." },
         metadata: {
           type: Type.OBJECT,
           properties: {
@@ -63,13 +61,12 @@ const storySchema: Schema = {
           required: ["coreConflict", "internalStruggle", "externalObstacle", "emotionalTensionLevel", "urgencyIndicator"]
         }
       },
-      required: ["content", "visualPrompt", "metadata"]
+      required: ["content", "metadata"]
     },
     escalation: {
       type: Type.OBJECT,
       properties: {
         content: { type: Type.STRING, description: "The narrative text for the escalation." },
-        visualPrompt: { type: Type.STRING, description: "A detailed visual prompt for an image/video for this section." },
         metadata: {
           type: Type.OBJECT,
           properties: {
@@ -82,13 +79,12 @@ const storySchema: Schema = {
           required: ["complicationLayer1", "complicationLayer2", "unexpectedDevelopment", "suspenseTrigger", "microCliffhanger"]
         }
       },
-      required: ["content", "visualPrompt", "metadata"]
+      required: ["content", "metadata"]
     },
     peak: {
       type: Type.OBJECT,
       properties: {
         content: { type: Type.STRING, description: "The narrative text for the peak/twist." },
-        visualPrompt: { type: Type.STRING, description: "A detailed visual prompt for an image/video for this section." },
         metadata: {
           type: Type.OBJECT,
           properties: {
@@ -101,13 +97,12 @@ const storySchema: Schema = {
           required: ["plotTwistReveal", "truthRealization", "turningPoint", "decisionMoment", "emotionalPeak"]
         }
       },
-      required: ["content", "visualPrompt", "metadata"]
+      required: ["content", "metadata"]
     },
     resolution: {
       type: Type.OBJECT,
       properties: {
         content: { type: Type.STRING, description: "The narrative text for the resolution." },
-        visualPrompt: { type: Type.STRING, description: "A detailed visual prompt for an image/video for this section." },
         metadata: {
           type: Type.OBJECT,
           properties: {
@@ -120,13 +115,12 @@ const storySchema: Schema = {
           required: ["outcomeSummary", "lessonLearned", "moralInsight", "reflectionStatement", "emotionalClosure"]
         }
       },
-      required: ["content", "visualPrompt", "metadata"]
+      required: ["content", "metadata"]
     },
     cta: {
       type: Type.OBJECT,
       properties: {
         content: { type: Type.STRING, description: "The narrative text for the CTA." },
-        visualPrompt: { type: Type.STRING, description: "A detailed visual prompt for an image/video for this section." },
         metadata: {
           type: Type.OBJECT,
           properties: {
@@ -139,7 +133,7 @@ const storySchema: Schema = {
           required: ["engagementPrompt", "questionPrompt", "relatabilityCheck", "discussionTrigger", "callToReflection"]
         }
       },
-      required: ["content", "visualPrompt", "metadata"]
+      required: ["content", "metadata"]
     }
   },
   required: ["title", "theme", "hook", "context", "problem", "escalation", "peak", "resolution", "cta"]
@@ -233,16 +227,13 @@ export const generateStory = async (theme: ThemeType, duration: DurationType, la
     ${additionalInfo ? `Additional Context/Requirements: ${additionalInfo}` : ''}
     
     The story MUST be structured into 7 distinct modules: Hook, Context, Problem, Escalation, Peak, Resolution, and CTA.
-    For each module, provide:
-    1. 'content': The actual narrative text (paragraph or sentences).
-    2. 'visualPrompt': A detailed visual prompt for an image/video for this section (in English).
-    3. 'metadata': The specific metadata requested in the schema.
+    For each module, provide the specific metadata requested in the schema and the actual narrative content (paragraph or sentences) for that section.
     
     Ensure the content flows naturally from one module to the next to form a cohesive story.
   `;
 
   try {
-    const response = await getAIClient().models.generateContent({
+    const response = await ai.models.generateContent({
       model: MODEL_NAME,
       contents: prompt,
       config: {
@@ -280,7 +271,7 @@ export const generateHooks = async (topic: string, theme: string, language: Lang
   `;
 
   try {
-    const response = await getAIClient().models.generateContent({
+    const response = await ai.models.generateContent({
       model: MODEL_NAME,
       contents: prompt,
       config: {
@@ -318,7 +309,7 @@ export const rewriteStory = async (currentStory: FullStory, language: Language):
   `;
 
   try {
-    const response = await getAIClient().models.generateContent({
+    const response = await ai.models.generateContent({
       model: MODEL_NAME,
       contents: prompt,
       config: {
@@ -361,7 +352,7 @@ export const generateSocialMetadata = async (story: FullStory, language: Languag
   `;
 
   try {
-    const response = await getAIClient().models.generateContent({
+    const response = await ai.models.generateContent({
       model: MODEL_NAME,
       contents: prompt,
       config: {
@@ -401,7 +392,7 @@ export const generateThumbnail = async (story: FullStory, language: Language): P
   `;
 
   try {
-    const response = await getAIClient().models.generateContent({
+    const response = await ai.models.generateContent({
         model: MODEL_NAME,
         contents: prompt,
         config: {
