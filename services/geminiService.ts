@@ -249,7 +249,7 @@ export const generateStory = async (theme: ThemeType, duration: DurationType, la
 
   try {
     const response = await getAIClient().models.generateContent({
-      model: MODEL_NAME,
+      model: getModelName(aiModel),
       contents: prompt,
       config: {
         systemInstruction: SYSTEM_INSTRUCTION,
