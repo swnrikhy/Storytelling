@@ -1,7 +1,7 @@
 import { GoogleGenAI, Type, Schema } from "@google/genai";
 import { ThemeType, FullStory, DurationType, Language, SocialMetadata, ThumbnailIdeas } from '../types';
 
-const getAIClient = () => new GoogleGenAI({ apiKey: process.env.API_KEY as string });
+const getAIClient = () => new GoogleGenAI({ apiKey: (process.env.API_KEY || process.env.GEMINI_API_KEY) as string });
 
 const storySchema: Schema = {
   type: Type.OBJECT,
