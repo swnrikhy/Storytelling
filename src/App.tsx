@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { ThemeType, FullStory, DurationType, Language, SocialMetadata, ThumbnailIdeas, HookIdea } from './types';
-import { generateStory, generateHooks, rewriteStory, generateSocialMetadata, generateThumbnail } from './services/geminiService';
+import { ThemeType, FullStory, DurationType, Language, SocialMetadata, ThumbnailIdeas, HookIdea, ShortScriptIdea } from './types';
+import { generateStory, generateHooks, rewriteStory, generateSocialMetadata, generateThumbnail, generateShortScript } from './services/geminiService';
 import { ModuleCard } from './components/ModuleCard';
 
 // Simplified Icons (Thinner strokes for elegance)
@@ -105,6 +105,7 @@ const translations = {
     generatingThumbnail: "Ideating...",
     socialMetadata: "Social Metadata",
     thumbnail: "Thumbnail Concepts",
+    shortScript: "Short Script (20-40s)",
     promptCopied: "Prompt Copied!"
   },
   id: {
@@ -178,6 +179,7 @@ const translations = {
     generatingThumbnail: "Berpikir...",
     socialMetadata: "Metadata Sosial",
     thumbnail: "Konsep Thumbnail",
+    shortScript: "Naskah Pendek (20-40d)",
     promptCopied: "Prompt Disalin!"
   }
 };
@@ -197,8 +199,10 @@ function App() {
   // New States for Metadata & Thumbnail
   const [socialMetadata, setSocialMetadata] = useState<SocialMetadata | null>(null);
   const [thumbnailIdeas, setThumbnailIdeas] = useState<ThumbnailIdeas | null>(null);
+  const [shortScripts, setShortScripts] = useState<ShortScriptIdea[]>([]);
   const [isGeneratingMetadata, setIsGeneratingMetadata] = useState(false);
   const [isGeneratingThumbnail, setIsGeneratingThumbnail] = useState(false);
+  const [isGeneratingShortScript, setIsGeneratingShortScript] = useState(false);
   const [promptCopied, setPromptCopied] = useState(false);
   
   // BYOK State
@@ -255,6 +259,7 @@ function App() {
     setStory(null);
     setSocialMetadata(null);
     setThumbnailIdeas(null);
+    setShortScripts([]);
     try {
       const result = await generateStory(selectedTheme, selectedDuration, language, additionalContext);
       setStory(result);
@@ -324,6 +329,23 @@ function App() {
       alert("Failed to generate thumbnail ideas");
     } finally {
       setIsGeneratingThumbnail(false);
+    }
+  };
+
+  const handleGenerateShortScript = async () => {
+    if (!story) return;
+    setIsGeneratingShortScript(true);
+    try {
+      const scripts = await generateShortScript(story, language);
+      setShortScripts(scripts);
+      setTimeout(() => {
+        distributionRef.current?.scrollIntoView({ behavior: 'smooth' });
+      }, 100);
+    } catch (error) {
+      console.error(error);
+      alert("Failed to generate short scripts");
+    } finally {
+      setIsGeneratingShortScript(false);
     }
   };
   
@@ -812,7 +834,7 @@ function App() {
                 <h2 className="text-lg font-semibold uppercase tracking-wide text-zinc-200">{t.distributionKit}</h2>
               </div>
               
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+              <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
                 {/* Social Metadata Column */}
                 <div className="bg-zinc-900/50 rounded-lg p-5 border border-zinc-800 h-full flex flex-col">
                   <div className="flex justify-between items-center mb-4">
@@ -839,14 +861,37 @@ function App() {
                         </ul>
                       </div>
                       <div>
-                        <span className="text-xs uppercase text-zinc-500 font-bold block mb-2">Description</span>
-                        <p className="text-zinc-400 leading-relaxed whitespace-pre-wrap">{socialMetadata.description}</p>
+                        <div className="flex justify-between items-center mb-2">
+                          <span className="text-xs uppercase text-zinc-500 font-bold">Description</span>
+                          <button 
+                            onClick={() => {
+                              navigator.clipboard.writeText(socialMetadata.description);
+                              alert("Description copied!");
+                            }}
+                            className="text-[10px] px-2 py-1 rounded bg-zinc-800 text-zinc-400 hover:text-white transition-colors"
+                          >
+                            Copy
+                          </button>
+                        </div>
+                        <p className="text-zinc-400 leading-relaxed whitespace-pre-wrap line-clamp-6 hover:line-clamp-none transition-all cursor-help bg-zinc-950/30 p-2 rounded border border-zinc-800/50">{socialMetadata.description}</p>
                       </div>
                       <div>
-                        <span className="text-xs uppercase text-zinc-500 font-bold block mb-2">Hashtags</span>
+                        <div className="flex justify-between items-center mb-2">
+                          <span className="text-xs uppercase text-zinc-500 font-bold">Hashtags</span>
+                          <button 
+                            onClick={() => {
+                              const tags = socialMetadata.hashtags.map(t => `#${t.replace(/^#/, '')}`).join(' ');
+                              navigator.clipboard.writeText(tags);
+                              alert("Hashtags copied!");
+                            }}
+                            className="text-[10px] px-2 py-1 rounded bg-zinc-800 text-zinc-400 hover:text-white transition-colors"
+                          >
+                            Copy
+                          </button>
+                        </div>
                         <div className="flex flex-wrap gap-2">
                           {socialMetadata.hashtags.map((tag, i) => (
-                            <span key={i} className="text-indigo-400 bg-indigo-400/10 px-1.5 py-0.5 rounded text-xs">#{tag}</span>
+                            <span key={i} className="text-indigo-400 bg-indigo-400/10 px-1.5 py-0.5 rounded text-xs">#{tag.replace(/^#/, '')}</span>
                           ))}
                         </div>
                       </div>
@@ -855,6 +900,63 @@ function App() {
                      <div className="flex-1 flex items-center justify-center text-zinc-600 text-sm py-12 border border-dashed border-zinc-800 rounded">
                         Generate metadata to see options.
                      </div>
+                  )}
+                </div>
+
+                {/* Short Script Column */}
+                <div className="bg-zinc-900/50 rounded-lg p-5 border border-zinc-800 h-full flex flex-col">
+                  <div className="flex justify-between items-center mb-4">
+                     <h3 className="text-sm font-semibold text-zinc-300 flex items-center gap-2">
+                       {Icons.Lightning} {t.shortScript}
+                     </h3>
+                     <button
+                        onClick={handleGenerateShortScript}
+                        disabled={isGeneratingShortScript}
+                        className={`text-xs px-3 py-1.5 rounded bg-zinc-800 hover:bg-zinc-700 text-white transition-colors disabled:opacity-50`}
+                     >
+                       {isGeneratingShortScript ? t.generatingMetadata : t.generateMetadata}
+                     </button>
+                  </div>
+
+                  {shortScripts.length > 0 ? (
+                    <div className="animate-fadeIn flex-1 flex flex-col space-y-4 overflow-y-auto max-h-[500px] pr-2 custom-scrollbar">
+                      {shortScripts.map((item, idx) => (
+                        <div key={idx} className="bg-zinc-950 rounded border border-zinc-800 p-4 flex flex-col gap-3 group relative">
+                          <div className="flex justify-between items-center">
+                            <div className="flex items-center gap-2">
+                              <span className="text-[10px] font-bold text-indigo-400 uppercase tracking-widest">{item.style}</span>
+                              <span className="text-[10px] text-zinc-600">•</span>
+                              <span className="text-[10px] text-zinc-500 italic">{item.hookType}</span>
+                            </div>
+                            <button 
+                              onClick={() => {
+                                navigator.clipboard.writeText(item.script);
+                                alert(`Script ${idx + 1} copied!`);
+                              }}
+                              className="text-[10px] px-2 py-1 rounded bg-zinc-800 text-zinc-400 hover:text-white transition-colors opacity-0 group-hover:opacity-100"
+                            >
+                              Copy
+                            </button>
+                          </div>
+                          <p className="text-zinc-300 text-xs leading-relaxed">
+                            {item.script}
+                          </p>
+                        </div>
+                      ))}
+                      <div className="mt-2 flex items-center gap-2 text-[10px] text-zinc-500 uppercase tracking-wider font-bold">
+                        <div className="h-1.5 w-1.5 rounded-full bg-indigo-500 animate-pulse"></div>
+                        3 Styles • Optimized for 20-40s
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="flex-1 flex items-center justify-center text-zinc-600 text-sm py-12 border border-dashed border-zinc-800 rounded">
+                      {isGeneratingShortScript ? (
+                         <div className="flex flex-col items-center gap-3">
+                           <div className="h-5 w-5 border-2 border-zinc-500 border-t-zinc-300 rounded-full animate-spin"></div>
+                           <span>{t.generatingMetadata}</span>
+                         </div>
+                      ) : "Generate to get 3 script variations."}
+                    </div>
                   )}
                 </div>
 
@@ -882,10 +984,10 @@ function App() {
                                 onClick={handleCopyPrompt}
                                 className={`text-[10px] px-2 py-1 rounded transition-colors ${promptCopied ? 'bg-green-900/50 text-green-200' : 'bg-zinc-800 text-zinc-400 hover:text-white'}`}
                              >
-                                {promptCopied ? t.promptCopied : "Copy Prompt"}
+                                {promptCopied ? t.promptCopied : "Copy"}
                              </button>
                           </div>
-                          <div className="p-3 bg-zinc-950 rounded border border-zinc-800 text-zinc-400 text-xs leading-relaxed italic">
+                          <div className="p-3 bg-zinc-950 rounded border border-zinc-800 text-zinc-400 text-xs leading-relaxed italic line-clamp-4 hover:line-clamp-none transition-all cursor-help">
                              {thumbnailIdeas.imagePrompt}
                           </div>
                        </div>
@@ -894,7 +996,7 @@ function App() {
                           <span className="text-xs uppercase text-zinc-500 font-bold block mb-2">Text Overlay Ideas</span>
                           <div className="flex flex-col gap-2">
                              {thumbnailIdeas.textOverlays.map((text, i) => (
-                                <div key={i} className="px-3 py-2 bg-zinc-800/50 rounded border border-zinc-700/50 text-zinc-200 font-bold text-center tracking-tight shadow-sm">
+                                <div key={i} className="px-3 py-2 bg-zinc-800/50 rounded border border-zinc-700/50 text-zinc-200 font-bold text-center tracking-tight shadow-sm text-xs">
                                    "{text}"
                                 </div>
                              ))}
@@ -908,7 +1010,7 @@ function App() {
                              <div className="h-5 w-5 border-2 border-zinc-500 border-t-zinc-300 rounded-full animate-spin"></div>
                              <span>{t.generatingThumbnail}</span>
                            </div>
-                        ) : "Generate to get prompt & text ideas."}
+                        ) : "Generate to get ideas."}
                      </div>
                   )}
                 </div>

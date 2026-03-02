@@ -101,6 +101,12 @@ export interface FullStory {
   cta: StoryModule<CTAMetadata>;
 }
 
+export interface ShortScriptIdea {
+  style: string;
+  hookType: string;
+  script: string;
+}
+
 export interface SocialMetadata {
   titles: string[];
   description: string;

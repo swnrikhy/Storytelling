@@ -1,5 +1,5 @@
 import { GoogleGenAI, Type, Schema } from "@google/genai";
-import { ThemeType, FullStory, DurationType, Language, SocialMetadata, ThumbnailIdeas, HookIdea } from '../types';
+import { ThemeType, FullStory, DurationType, Language, SocialMetadata, ThumbnailIdeas, HookIdea, ShortScriptIdea } from '../types';
 
 const apiKey = process.env.GEMINI_API_KEY;
 const ai = new GoogleGenAI({ apiKey: apiKey });
@@ -170,6 +170,26 @@ const socialMetadataSchema: Schema = {
     }
   },
   required: ["titles", "description", "hashtags"]
+};
+
+const shortScriptSchema: Schema = {
+  type: Type.OBJECT,
+  properties: {
+    scripts: { 
+      type: Type.ARRAY,
+      items: {
+        type: Type.OBJECT,
+        properties: {
+          style: { type: Type.STRING, description: "The style of this script (e.g., Dramatic, Educational, Fast-paced)." },
+          hookType: { type: Type.STRING, description: "The type of hook used (e.g., Question, Shocking Fact, Direct Address)." },
+          script: { type: Type.STRING, description: "The actual narrative text, to the point, no stage directions." }
+        },
+        required: ["style", "hookType", "script"]
+      },
+      description: "3 different versions of a 20-40s script."
+    }
+  },
+  required: ["scripts"]
 };
 
 const thumbnailIdeasSchema: Schema = {
@@ -353,7 +373,7 @@ export const generateSocialMetadata = async (story: FullStory, language: Languag
     Tasks:
     1. 5 Clickbait/Viral Titles (Short, punchy, curiosity-inducing).
     2. A YouTube/TikTok Description (Engaging, SEO-friendly, includes a question for engagement).
-    3. 15-20 High-traffic Hashtags: a mix of trending, niche, and evergreen hashtags.
+    3. 15-20 High-traffic Hashtags: a mix of trending, niche, and evergreen hashtags. IMPORTANT: DO NOT include the '#' symbol in the hashtag strings, just the words.
 
     ${languageInstruction}
   `;
@@ -375,6 +395,55 @@ export const generateSocialMetadata = async (story: FullStory, language: Languag
     return JSON.parse(text) as SocialMetadata;
   } catch (error) {
     console.error("Gemini API Error (Social Metadata):", error);
+    throw error;
+  }
+};
+
+export const generateShortScript = async (story: FullStory, language: Language): Promise<ShortScriptIdea[]> => {
+  const languageInstruction = language === 'id' 
+    ? "OUTPUT MUST BE IN INDONESIAN (BAHASA INDONESIA)."
+    : "OUTPUT MUST BE IN ENGLISH.";
+
+  const prompt = `
+    Create 3 different high-energy, punchy scripts optimized for a 20-40 second short-form video (TikTok/Reels/Shorts) based on this story.
+    
+    Story Title: ${story.title}
+    Full Narrative: ${story.hook.content} ${story.context.content} ${story.problem.content} ${story.resolution.content}
+    
+    Guidelines for the 3 versions:
+    1. Version 1: Dramatic & Suspenseful. Use a "Shock" or "Warning" hook.
+    2. Version 2: Educational/Curiosity. Use a "Did you know?" or "Question" hook.
+    3. Version 3: Fast-paced/Direct. Start with a "Confession" or "Direct Address" (e.g., "Stop scrolling if you...").
+    
+    General Rules:
+    - Each script must be "to the point" - ONLY the narrative text that will be spoken.
+    - No stage directions, no [Visuals], no [Music].
+    - Focus on the hook, the core conflict, and the twist.
+    - End with a strong Call to Action.
+    - The total reading time for each must be between 20 and 40 seconds.
+    - Do not change the core facts of the story.
+
+    ${languageInstruction}
+  `;
+
+  try {
+    const response = await ai.models.generateContent({
+      model: MODEL_NAME,
+      contents: prompt,
+      config: {
+        systemInstruction: "You are a Viral Video Scriptwriter. You know how to keep people watching with punchy, narrative-only scripts.",
+        responseMimeType: "application/json",
+        responseSchema: shortScriptSchema,
+      }
+    });
+
+    const text = response.text;
+    if (!text) throw new Error("No scripts generated");
+    
+    const json = JSON.parse(text);
+    return json.scripts as ShortScriptIdea[];
+  } catch (error) {
+    console.error("Gemini API Error (Short Script):", error);
     throw error;
   }
 };
