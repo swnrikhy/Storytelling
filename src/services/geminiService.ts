@@ -1,5 +1,5 @@
 import { GoogleGenAI, Type, Schema } from "@google/genai";
-import { ThemeType, FullStory, DurationType, Language, SocialMetadata, ThumbnailIdeas } from '../types';
+import { ThemeType, FullStory, DurationType, Language, SocialMetadata, ThumbnailIdeas, HookIdea } from '../types';
 
 const apiKey = process.env.GEMINI_API_KEY;
 const ai = new GoogleGenAI({ apiKey: apiKey });
@@ -141,7 +141,14 @@ const storySchema: Schema = {
 
 const hooksSchema: Schema = {
   type: Type.ARRAY,
-  items: { type: Type.STRING }
+  items: { 
+    type: Type.OBJECT,
+    properties: {
+      text: { type: Type.STRING, description: "The hook text in the target language." },
+      translation: { type: Type.STRING, description: "The Indonesian translation of the hook (only if target language is English)." }
+    },
+    required: ["text"]
+  }
 };
 
 const socialMetadataSchema: Schema = {
@@ -254,10 +261,10 @@ export const generateStory = async (theme: ThemeType, duration: DurationType, la
   }
 };
 
-export const generateHooks = async (topic: string, theme: string, language: Language): Promise<string[]> => {
+export const generateHooks = async (topic: string, theme: string, language: Language): Promise<HookIdea[]> => {
   const languageInstruction = language === 'id' 
-    ? "OUTPUT MUST BE IN INDONESIAN (BAHASA INDONESIA)."
-    : "OUTPUT MUST BE IN ENGLISH.";
+    ? "OUTPUT MUST BE IN INDONESIAN (BAHASA INDONESIA). No translation needed."
+    : "OUTPUT MUST BE IN ENGLISH. For each hook, also provide an Indonesian translation in the 'translation' field.";
 
   const prompt = `
     Generate 5 scroll-stopping hooks for this topic: "${topic || theme}".
@@ -267,7 +274,7 @@ export const generateHooks = async (topic: string, theme: string, language: Lang
     Use curiosity, emotional triggers, and pattern interrupts.
     Make them feel native to TikTok storytelling.
     
-    Return a JSON array of strings, where each string is a unique hook.
+    Return a JSON array of objects with 'text' and 'translation' fields.
   `;
 
   try {
@@ -284,7 +291,7 @@ export const generateHooks = async (topic: string, theme: string, language: Lang
     const text = response.text;
     if (!text) throw new Error("No text generated");
 
-    return JSON.parse(text) as string[];
+    return JSON.parse(text) as HookIdea[];
   } catch (error) {
     console.error("Gemini API Error (Hooks):", error);
     throw error;

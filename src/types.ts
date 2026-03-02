@@ -84,6 +84,11 @@ export interface CTAMetadata {
   callToReflection: string;
 }
 
+export interface HookIdea {
+  text: string;
+  translation?: string;
+}
+
 export interface FullStory {
   title: string;
   theme: ThemeType;

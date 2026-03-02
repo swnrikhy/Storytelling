@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { ThemeType, FullStory, DurationType, Language, SocialMetadata, ThumbnailIdeas } from './types';
+import { ThemeType, FullStory, DurationType, Language, SocialMetadata, ThumbnailIdeas, HookIdea } from './types';
 import { generateStory, generateHooks, rewriteStory, generateSocialMetadata, generateThumbnail } from './services/geminiService';
 import { ModuleCard } from './components/ModuleCard';
 
@@ -190,7 +190,7 @@ function App() {
   const [isLoading, setIsLoading] = useState(false);
   const [isRewriting, setIsRewriting] = useState(false);
   const [isGeneratingHooks, setIsGeneratingHooks] = useState(false);
-  const [generatedHooks, setGeneratedHooks] = useState<string[]>([]);
+  const [generatedHooks, setGeneratedHooks] = useState<HookIdea[]>([]);
   const [story, setStory] = useState<FullStory | null>(null);
   const [isReading, setIsReading] = useState(false);
   
@@ -645,11 +645,18 @@ function App() {
                   {generatedHooks.map((hook, index) => (
                     <div 
                       key={index}
-                      onClick={() => setAdditionalContext(hook)}
+                      onClick={() => setAdditionalContext(hook.text)}
                       className="p-3 rounded-md border border-zinc-800/50 hover:border-zinc-600 hover:bg-zinc-800 cursor-pointer transition-all text-sm text-zinc-400 hover:text-zinc-200 flex items-start gap-3 group"
                     >
                       <span className="text-zinc-600 font-mono text-xs mt-0.5">{index + 1}</span>
-                      <span className="flex-1">{hook}</span>
+                      <div className="flex-1">
+                        <div className="font-medium">{hook.text}</div>
+                        {hook.translation && (
+                          <div className="text-xs text-zinc-500 mt-1 italic">
+                            {hook.translation}
+                          </div>
+                        )}
+                      </div>
                     </div>
                   ))}
                 </div>
