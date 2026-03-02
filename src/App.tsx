@@ -29,7 +29,9 @@ const Icons = {
   Rocket: <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M4.5 16.5c-1.5 1.26-2 5-2 5s3.74-.5 5-2c.71-.84.7-2.13-.09-2.91a2.18 2.18 0 0 0-2.91-.09z"></path><path d="m12 15-3-3a22 22 0 0 1 2-3.95A12.88 12.88 0 0 1 22 2c0 2.72-.78 7.5-6 11a22.35 22.35 0 0 1-4 2z"></path><path d="M9 12H4s.55-3.03 2-4c1.62-1.08 5 0 5 0"></path><path d="M12 15v5s3.03-.55 4-2c1.08-1.62 0-5 0-5"></path></svg>,
   Castle: <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M22 20v-9H2v9a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2Z"></path><path d="M18 11V4H6v7"></path><path d="M15 22v-4a3 3 0 0 0-6 0v4"></path><path d="M22 11h-4a2 2 0 0 0-2-2V6a2 2 0 0 0-2-2H8a2 2 0 0 0-2 2v3a2 2 0 0 0-2 2H2"></path></svg>,
   Image: <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><circle cx="8.5" cy="8.5" r="1.5"></circle><polyline points="21 15 16 10 5 21"></polyline></svg>,
-  Tag: <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"></path><line x1="7" y1="7" x2="7.01" y2="7"></line></svg>
+  Tag: <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"></path><line x1="7" y1="7" x2="7.01" y2="7"></line></svg>,
+  History: <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"></path><path d="M3 3v5h5"></path><path d="M12 7v5l4 2"></path></svg>,
+  Trash: <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M3 6h18"></path><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"></path><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"></path></svg>
 };
 
 // Localized Strings Map
@@ -106,7 +108,10 @@ const translations = {
     socialMetadata: "Social Metadata",
     thumbnail: "Thumbnail Concepts",
     shortScript: "Short Script (20-40s)",
-    promptCopied: "Prompt Copied!"
+    promptCopied: "Prompt Copied!",
+    history: "History",
+    noHistory: "No history yet.",
+    clearHistory: "Clear History"
   },
   id: {
     heroTitle: "Buat Cerita Viral",
@@ -180,7 +185,10 @@ const translations = {
     socialMetadata: "Metadata Sosial",
     thumbnail: "Konsep Thumbnail",
     shortScript: "Naskah Pendek (20-40d)",
-    promptCopied: "Prompt Disalin!"
+    promptCopied: "Prompt Disalin!",
+    history: "Riwayat",
+    noHistory: "Belum ada riwayat.",
+    clearHistory: "Hapus Riwayat"
   }
 };
 
@@ -204,6 +212,7 @@ function App() {
   const [isGeneratingThumbnail, setIsGeneratingThumbnail] = useState(false);
   const [isGeneratingShortScript, setIsGeneratingShortScript] = useState(false);
   const [promptCopied, setPromptCopied] = useState(false);
+  const [history, setHistory] = useState<import('./types').HistoryItem[]>([]);
   
   // BYOK State
   const [isApiKeySet, setIsApiKeySet] = useState<boolean>(true); // Default true to prevent flash
@@ -214,6 +223,7 @@ function App() {
   const resultRef = useRef<HTMLDivElement>(null);
   const durationRef = useRef<HTMLElement>(null);
   const distributionRef = useRef<HTMLDivElement>(null);
+  const historyRef = useRef<HTMLDivElement>(null);
 
   const t = translations[language];
 
@@ -226,7 +236,55 @@ function App() {
     } else {
       setIsApiKeySet(true);
     }
+
+    // Load history
+    const savedHistory = localStorage.getItem('narrative_history');
+    if (savedHistory) {
+      try {
+        setHistory(JSON.parse(savedHistory));
+      } catch (e) {
+        console.error("Failed to parse history", e);
+      }
+    }
   }, []);
+
+  // Save history to localStorage whenever it changes
+  useEffect(() => {
+    localStorage.setItem('narrative_history', JSON.stringify(history));
+  }, [history]);
+
+  const addToHistory = (newStory: FullStory) => {
+    const newItem: import('./types').HistoryItem = {
+      id: Math.random().toString(36).substr(2, 9),
+      timestamp: Date.now(),
+      story: newStory,
+      socialMetadata: null,
+      thumbnailIdeas: null,
+      shortScripts: [],
+    };
+    setHistory(prev => [newItem, ...prev].slice(0, 10));
+  };
+
+  const updateHistoryItem = (updates: Partial<import('./types').HistoryItem>) => {
+    if (!story) return;
+    setHistory(prev => {
+      const index = prev.findIndex(item => item.story.title === story.title);
+      if (index === -1) return prev;
+      const newHistory = [...prev];
+      newHistory[index] = { ...newHistory[index], ...updates };
+      return newHistory;
+    });
+  };
+
+  const loadHistoryItem = (item: import('./types').HistoryItem) => {
+    setStory(item.story);
+    setSocialMetadata(item.socialMetadata);
+    setThumbnailIdeas(item.thumbnailIdeas);
+    setShortScripts(item.shortScripts);
+    setTimeout(() => {
+      resultRef.current?.scrollIntoView({ behavior: 'smooth' });
+    }, 100);
+  };
 
   const handleSaveApiKey = () => {
     if (apiKeyInput.trim()) {
@@ -263,6 +321,7 @@ function App() {
     try {
       const result = await generateStory(selectedTheme, selectedDuration, language, additionalContext);
       setStory(result);
+      addToHistory(result);
       setTimeout(() => {
         resultRef.current?.scrollIntoView({ behavior: 'smooth' });
       }, 100);
@@ -304,6 +363,7 @@ function App() {
     try {
       const metadata = await generateSocialMetadata(story, language);
       setSocialMetadata(metadata);
+      updateHistoryItem({ socialMetadata: metadata });
       setTimeout(() => {
         distributionRef.current?.scrollIntoView({ behavior: 'smooth' });
       }, 100);
@@ -321,6 +381,7 @@ function App() {
     try {
       const ideas = await generateThumbnail(story, language);
       setThumbnailIdeas(ideas);
+      updateHistoryItem({ thumbnailIdeas: ideas });
       setTimeout(() => {
         distributionRef.current?.scrollIntoView({ behavior: 'smooth' });
       }, 100);
@@ -338,6 +399,7 @@ function App() {
     try {
       const scripts = await generateShortScript(story, language);
       setShortScripts(scripts);
+      updateHistoryItem({ shortScripts: scripts });
       setTimeout(() => {
         distributionRef.current?.scrollIntoView({ behavior: 'smooth' });
       }, 100);
@@ -503,6 +565,15 @@ function App() {
             Generative Content
           </h1>
           <div className="flex items-center gap-3">
+            {/* History Button */}
+            <button
+              onClick={() => historyRef.current?.scrollIntoView({ behavior: 'smooth' })}
+              className="p-2 text-zinc-500 hover:text-white transition-colors rounded-full hover:bg-zinc-900 border border-transparent hover:border-zinc-800"
+              title={t.history}
+            >
+              {Icons.History}
+            </button>
+
             {/* API Key Button */}
             <button
               onClick={handleOpenApiKeyModal}
@@ -1077,6 +1148,68 @@ function App() {
             </div>
           </div>
         )}
+
+        {/* History Section at the bottom */}
+        <div ref={historyRef} className="max-w-5xl mx-auto px-6 mt-20 pt-12 border-t border-zinc-800/50">
+          <div className="flex justify-between items-center mb-8">
+            <h2 className="text-xl font-semibold text-white flex items-center gap-3">
+              <span className="text-indigo-500">{Icons.History}</span>
+              {t.history}
+            </h2>
+            {history.length > 0 && (
+              <button 
+                onClick={() => {
+                  if (window.confirm(t.clearHistory + "?")) {
+                    setHistory([]);
+                    localStorage.removeItem('narrative_history');
+                  }
+                }}
+                className="px-4 py-2 rounded-lg border border-red-500/30 text-red-400 text-xs font-medium hover:bg-red-500/10 transition-all flex items-center gap-2"
+              >
+                {Icons.Trash} {t.clearHistory}
+              </button>
+            )}
+          </div>
+
+          {history.length > 0 ? (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              {history.map((item) => (
+                <button
+                  key={item.id}
+                  onClick={() => loadHistoryItem(item)}
+                  className="text-left p-5 rounded-2xl border border-zinc-800 bg-zinc-900/20 hover:bg-zinc-900/40 hover:border-zinc-700 transition-all group flex flex-col h-full"
+                >
+                  <div className="flex justify-between items-start mb-3">
+                    <span className="text-[10px] font-bold text-indigo-400 uppercase tracking-widest bg-indigo-500/10 px-2 py-0.5 rounded">
+                      {t.themeNames[item.story.theme]}
+                    </span>
+                    <span className="text-[10px] text-zinc-600 font-mono">
+                      {new Date(item.timestamp).toLocaleDateString([], { month: 'short', day: 'numeric' })} • {new Date(item.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                    </span>
+                  </div>
+                  <h3 className="text-sm font-semibold text-zinc-200 line-clamp-1 group-hover:text-white transition-colors mb-2">
+                    {item.story.title}
+                  </h3>
+                  <p className="text-xs text-zinc-500 line-clamp-3 italic leading-relaxed flex-1">
+                    {item.story.hook.content}
+                  </p>
+                  <div className="mt-4 pt-3 border-t border-zinc-800/50 flex items-center gap-3">
+                    <div className={`h-1.5 w-1.5 rounded-full ${item.socialMetadata ? 'bg-green-500' : 'bg-zinc-700'}`} title="Metadata"></div>
+                    <div className={`h-1.5 w-1.5 rounded-full ${item.shortScripts.length > 0 ? 'bg-indigo-500' : 'bg-zinc-700'}`} title="Scripts"></div>
+                    <div className={`h-1.5 w-1.5 rounded-full ${item.thumbnailIdeas ? 'bg-amber-500' : 'bg-zinc-700'}`} title="Thumbnail"></div>
+                  </div>
+                </button>
+              ))}
+            </div>
+          ) : (
+            <div className="bg-zinc-900/20 border border-dashed border-zinc-800 rounded-3xl py-20 flex flex-col items-center justify-center text-zinc-600 space-y-4">
+              <div className="w-16 h-16 rounded-full bg-zinc-900 flex items-center justify-center opacity-50">
+                {Icons.History}
+              </div>
+              <p className="text-sm font-medium">{t.noHistory}</p>
+            </div>
+          )}
+        </div>
       </main>
     </div>
   );

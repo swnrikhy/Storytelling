@@ -117,3 +117,12 @@ export interface ThumbnailIdeas {
   imagePrompt: string;
   textOverlays: string[];
 }
+
+export interface HistoryItem {
+  id: string;
+  timestamp: number;
+  story: FullStory;
+  socialMetadata: SocialMetadata | null;
+  thumbnailIdeas: ThumbnailIdeas | null;
+  shortScripts: ShortScriptIdea[];
+}
