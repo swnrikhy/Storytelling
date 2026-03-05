@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { ThemeType, FullStory, DurationType, Language, SocialMetadata, ThumbnailIdeas, HookIdea, ShortScriptIdea } from './types';
+import { ThemeType, FullStory, DurationType, Language, SocialMetadata, ThumbnailIdeas, HookIdea, ShortScriptIdea, FrameworkType } from './types';
 import { generateStory, generateHooks, rewriteStory, generateSocialMetadata, generateThumbnail, generateShortScript } from './services/geminiService';
 import { ModuleCard } from './components/ModuleCard';
 
@@ -123,7 +123,135 @@ const translations = {
     promptCopied: "Prompt Copied!",
     history: "History",
     noHistory: "No history yet.",
-    clearHistory: "Clear History"
+    clearHistory: "Clear History",
+    selectFramework: "Content Structure",
+    frameworks: {
+      [FrameworkType.NARRATIVE]: "Narrative Arc (Story)",
+      [FrameworkType.PAS]: "Problem-Agitate-Solve",
+      [FrameworkType.AIDA]: "Attention-Interest-Desire-Action",
+      [FrameworkType.LISTICLE]: "Listicle (Top Facts/Tips)",
+      [FrameworkType.MYTH_BUSTING]: "Myth-Busting",
+      [FrameworkType.TUTORIAL]: "Step-by-Step Tutorial",
+      [FrameworkType.BEFORE_AFTER]: "Before & After",
+      [FrameworkType.COMPARISON]: "Comparison / Versus",
+      [FrameworkType.BEHIND_THE_SCENES]: "Behind the Scenes",
+      [FrameworkType.WHAT_IF]: "What If / Speculative",
+      [FrameworkType.PERSONAL_STORY]: "Personal Story / Vulnerability"
+    },
+    frameworkRecommendations: {
+      [FrameworkType.NARRATIVE]: "Best for: Emotional stories, historical events, and character-driven drama.",
+      [FrameworkType.PAS]: "Best for: Educational content, productivity tips, and business solutions.",
+      [FrameworkType.AIDA]: "Best for: Marketing, product reviews, and persuasive content.",
+      [FrameworkType.LISTICLE]: "Best for: Facts, curiosity, 'Top 5' lists, and quick tips.",
+      [FrameworkType.MYTH_BUSTING]: "Best for: Scientific topics, debunking common beliefs, and history.",
+      [FrameworkType.TUTORIAL]: "Best for: How-to guides, recipes, and technical processes.",
+      [FrameworkType.BEFORE_AFTER]: "Best for: Transformations, case studies, and fitness journeys.",
+      [FrameworkType.COMPARISON]: "Best for: Product reviews, tech comparisons, and 'This vs That'.",
+      [FrameworkType.BEHIND_THE_SCENES]: "Best for: Creative processes, business operations, and 'How it's made'.",
+      [FrameworkType.WHAT_IF]: "Best for: Sci-fi, alternate history, and philosophical questions.",
+      [FrameworkType.PERSONAL_STORY]: "Best for: Building trust, sharing lessons, and emotional connection."
+    },
+    frameworkLabels: {
+      [FrameworkType.NARRATIVE]: {
+        hook: "The Hook",
+        context: "Context & Setup",
+        problem: "The Problem",
+        escalation: "Escalation",
+        peak: "Peak / Twist",
+        resolution: "Resolution",
+        cta: "Call to Action"
+      },
+      [FrameworkType.PAS]: {
+        hook: "Attention",
+        context: "Problem",
+        problem: "Agitate",
+        escalation: "Agitate Further",
+        peak: "Solution",
+        resolution: "Proof",
+        cta: "Action"
+      },
+      [FrameworkType.AIDA]: {
+        hook: "Attention",
+        context: "Interest",
+        problem: "Interest Detail",
+        escalation: "Desire",
+        peak: "Desire Peak",
+        resolution: "Satisfaction",
+        cta: "Action"
+      },
+      [FrameworkType.LISTICLE]: {
+        hook: "Intro / Hook",
+        context: "Fact 1",
+        problem: "Fact 2",
+        escalation: "Fact 3",
+        peak: "Fact 4 (Shocking)",
+        resolution: "Summary",
+        cta: "Engagement"
+      },
+      [FrameworkType.MYTH_BUSTING]: {
+        hook: "The Myth",
+        context: "Why Believe",
+        problem: "The Flaw",
+        escalation: "Evidence",
+        peak: "The Truth",
+        resolution: "Impact",
+        cta: "Discussion"
+      },
+      [FrameworkType.TUTORIAL]: {
+        hook: "The Result",
+        context: "Requirements",
+        problem: "Common Mistake",
+        escalation: "Step 1-2",
+        peak: "Key Secret",
+        resolution: "Final Result",
+        cta: "Try it"
+      },
+      [FrameworkType.BEFORE_AFTER]: {
+        hook: "The Result",
+        context: "The Before",
+        problem: "The Struggle",
+        escalation: "The Turning Point",
+        peak: "The Transformation",
+        resolution: "The After",
+        cta: "Call to Action"
+      },
+      [FrameworkType.COMPARISON]: {
+        hook: "The Contenders",
+        context: "Criteria 1",
+        problem: "Criteria 2",
+        escalation: "Criteria 3",
+        peak: "The Verdict",
+        resolution: "Final Thoughts",
+        cta: "Your Choice?"
+      },
+      [FrameworkType.BEHIND_THE_SCENES]: {
+        hook: "Finished Product",
+        context: "The Effort",
+        problem: "The Challenge",
+        escalation: "The Process",
+        peak: "Breakthrough",
+        resolution: "Final Result",
+        cta: "Follow"
+      },
+      [FrameworkType.WHAT_IF]: {
+        hook: "The Question",
+        context: "Known Reality",
+        problem: "Divergence",
+        escalation: "Consequences",
+        peak: "The Outcome",
+        resolution: "Reflection",
+        cta: "Your Opinion?"
+      },
+      [FrameworkType.PERSONAL_STORY]: {
+        hook: "Vulnerability",
+        context: "Background",
+        problem: "Internal Struggle",
+        escalation: "Breaking Point",
+        peak: "Realization",
+        resolution: "Growth",
+        cta: "Share Yours"
+      }
+    }
   },
   id: {
     heroTitle: "Buat Cerita Viral",
@@ -212,7 +340,135 @@ const translations = {
     promptCopied: "Prompt Disalin!",
     history: "Riwayat",
     noHistory: "Belum ada riwayat.",
-    clearHistory: "Hapus Riwayat"
+    clearHistory: "Hapus Riwayat",
+    selectFramework: "Struktur Konten",
+    frameworks: {
+      [FrameworkType.NARRATIVE]: "Alur Narasi (Cerita)",
+      [FrameworkType.PAS]: "Problem-Agitate-Solve",
+      [FrameworkType.AIDA]: "Attention-Interest-Desire-Action",
+      [FrameworkType.LISTICLE]: "Listicle (Fakta/Tips)",
+      [FrameworkType.MYTH_BUSTING]: "Myth-Busting (Fakta vs Mitos)",
+      [FrameworkType.TUTORIAL]: "Tutorial Langkah-demi-Langkah",
+      [FrameworkType.BEFORE_AFTER]: "Sebelum & Sesudah",
+      [FrameworkType.COMPARISON]: "Perbandingan / Versus",
+      [FrameworkType.BEHIND_THE_SCENES]: "Di Balik Layar",
+      [FrameworkType.WHAT_IF]: "Bagaimana Jika / Spekulatif",
+      [FrameworkType.PERSONAL_STORY]: "Cerita Pribadi / Vulnerability"
+    },
+    frameworkRecommendations: {
+      [FrameworkType.NARRATIVE]: "Cocok untuk: Cerita emosional, peristiwa sejarah, dan drama karakter.",
+      [FrameworkType.PAS]: "Cocok untuk: Konten edukasi, tips produktivitas, dan solusi bisnis.",
+      [FrameworkType.AIDA]: "Cocok untuk: Pemasaran, ulasan produk, dan konten persuasif.",
+      [FrameworkType.LISTICLE]: "Cocok untuk: Fakta, rasa ingin tahu, daftar 'Top 5', dan tips cepat.",
+      [FrameworkType.MYTH_BUSTING]: "Cocok untuk: Topik ilmiah, membongkar kepercayaan umum, dan sejarah.",
+      [FrameworkType.TUTORIAL]: "Cocok untuk: Panduan cara, resep, dan proses teknis.",
+      [FrameworkType.BEFORE_AFTER]: "Cocok untuk: Transformasi, studi kasus, dan perjalanan kebugaran.",
+      [FrameworkType.COMPARISON]: "Cocok untuk: Ulasan produk, perbandingan teknologi, dan 'Ini vs Itu'.",
+      [FrameworkType.BEHIND_THE_SCENES]: "Cocok untuk: Proses kreatif, operasional bisnis, dan 'Cara pembuatannya'.",
+      [FrameworkType.WHAT_IF]: "Cocok untuk: Sci-fi, sejarah alternatif, dan pertanyaan filosofis.",
+      [FrameworkType.PERSONAL_STORY]: "Cocok untuk: Membangun kepercayaan, berbagi pelajaran, dan koneksi emosional."
+    },
+    frameworkLabels: {
+      [FrameworkType.NARRATIVE]: {
+        hook: "Pancingan (Hook)",
+        context: "Konteks & Pengaturan",
+        problem: "Masalah Utama",
+        escalation: "Eskalasi Konflik",
+        peak: "Puncak / Plot Twist",
+        resolution: "Resolusi",
+        cta: "Ajakan Bertindak (CTA)"
+      },
+      [FrameworkType.PAS]: {
+        hook: "Perhatian (Attention)",
+        context: "Masalah (Problem)",
+        problem: "Agitasi (Agitate)",
+        escalation: "Agitasi Lanjut",
+        peak: "Solusi (Solution)",
+        resolution: "Bukti (Proof)",
+        cta: "Tindakan (Action)"
+      },
+      [FrameworkType.AIDA]: {
+        hook: "Perhatian (Attention)",
+        context: "Minat (Interest)",
+        problem: "Detail Minat",
+        escalation: "Keinginan (Desire)",
+        peak: "Puncak Keinginan",
+        resolution: "Kepuasan",
+        cta: "Tindakan (Action)"
+      },
+      [FrameworkType.LISTICLE]: {
+        hook: "Intro / Hook",
+        context: "Fakta 1",
+        problem: "Fakta 2",
+        escalation: "Fakta 3",
+        peak: "Fakta 4 (Mengejutkan)",
+        resolution: "Ringkasan",
+        cta: "Interaksi"
+      },
+      [FrameworkType.MYTH_BUSTING]: {
+        hook: "Mitos",
+        context: "Alasan Percaya",
+        problem: "Kekeliruan",
+        escalation: "Bukti Nyata",
+        peak: "Kebenaran",
+        resolution: "Dampak",
+        cta: "Diskusi"
+      },
+      [FrameworkType.TUTORIAL]: {
+        hook: "Hasil Akhir",
+        context: "Persiapan",
+        problem: "Kesalahan Umum",
+        escalation: "Langkah 1-2",
+        peak: "Rahasia Kunci",
+        resolution: "Hasil Final",
+        cta: "Coba Sekarang"
+      },
+      [FrameworkType.BEFORE_AFTER]: {
+        hook: "Hasil Akhir",
+        context: "Sebelum",
+        problem: "Perjuangan",
+        escalation: "Titik Balik",
+        peak: "Transformasi",
+        resolution: "Sesudah",
+        cta: "Tindakan"
+      },
+      [FrameworkType.COMPARISON]: {
+        hook: "Para Pesaing",
+        context: "Kriteria 1",
+        problem: "Kriteria 2",
+        escalation: "Kriteria 3",
+        peak: "Putusan Akhir",
+        resolution: "Kesimpulan",
+        cta: "Pilihan Anda?"
+      },
+      [FrameworkType.BEHIND_THE_SCENES]: {
+        hook: "Produk Jadi",
+        context: "Upaya Tersembunyi",
+        problem: "Tantangan",
+        escalation: "Proses",
+        peak: "Terobosan",
+        resolution: "Hasil Akhir",
+        cta: "Ikuti"
+      },
+      [FrameworkType.WHAT_IF]: {
+        hook: "Pertanyaan",
+        context: "Realitas",
+        problem: "Titik Pisah",
+        escalation: "Konsekuensi",
+        peak: "Hasil Akhir",
+        resolution: "Refleksi",
+        cta: "Pendapat Anda?"
+      },
+      [FrameworkType.PERSONAL_STORY]: {
+        hook: "Keterbukaan",
+        context: "Latar Belakang",
+        problem: "Konflik Batin",
+        escalation: "Titik Hancur",
+        peak: "Kesadaran",
+        resolution: "Pertumbuhan",
+        cta: "Cerita Anda?"
+      }
+    }
   }
 };
 
@@ -220,6 +476,7 @@ function App() {
   const [language, setLanguage] = useState<Language>('en');
   const [selectedTheme, setSelectedTheme] = useState<ThemeType>(ThemeType.HISTORY);
   const [selectedDuration, setSelectedDuration] = useState<DurationType>(DurationType.SHORT);
+  const [selectedFramework, setSelectedFramework] = useState<FrameworkType>(FrameworkType.NARRATIVE);
   const [additionalContext, setAdditionalContext] = useState('');
   const [writingStyle, setWritingStyle] = useState('storytelling');
   const [isLoading, setIsLoading] = useState(false);
@@ -345,7 +602,7 @@ function App() {
     setShortScripts([]);
     try {
       const writingStyleLabel = t.writingStyles[writingStyle as keyof typeof t.writingStyles] || writingStyle;
-      const result = await generateStory(selectedTheme, selectedDuration, language, additionalContext, writingStyleLabel);
+      const result = await generateStory(selectedTheme, selectedDuration, language, selectedFramework, additionalContext, writingStyleLabel);
       setStory(result);
       addToHistory(result);
       setTimeout(() => {
@@ -709,6 +966,39 @@ function App() {
           </div>
         </section>
 
+        {/* Framework Selection - Dropdown */}
+        <section className="mb-8">
+          <label className="block text-xs font-medium uppercase tracking-widest text-zinc-500 mb-3 ml-1">
+            {t.selectFramework}
+          </label>
+          
+          <div className="relative">
+            <select
+              value={selectedFramework}
+              onChange={(e) => setSelectedFramework(e.target.value as FrameworkType)}
+              className="w-full bg-zinc-900 text-zinc-200 border border-zinc-800 rounded-lg px-4 py-3.5 appearance-none focus:ring-1 focus:ring-zinc-600 focus:border-zinc-600 transition-all outline-none text-base font-medium cursor-pointer shadow-sm hover:border-zinc-700"
+            >
+              {Object.values(FrameworkType).map((framework) => (
+                <option key={framework} value={framework} className="bg-zinc-900 text-zinc-200">
+                  {t.frameworks[framework]}
+                </option>
+              ))}
+            </select>
+            {/* Custom Icon for Dropdown */}
+            <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-4 text-zinc-500">
+              <svg className="fill-current h-4 w-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"><path d="M9.293 12.95l.707.707L15.657 8l-1.414-1.414L10 10.828 5.757 6.586 4.343 8z"/></svg>
+            </div>
+          </div>
+
+          {/* Framework Recommendation */}
+          <div className="mt-3 px-1">
+            <p className="text-xs text-zinc-500 italic flex items-center gap-2">
+              <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-indigo-400"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg>
+              {t.frameworkRecommendations[selectedFramework]}
+            </p>
+          </div>
+        </section>
+
         {/* Duration Selection */}
         <section ref={durationRef} className="mb-10 scroll-mt-24">
             <label className="block text-xs font-medium uppercase tracking-widest text-zinc-500 mb-3 ml-1">
@@ -879,7 +1169,7 @@ function App() {
             <div className="space-y-6 mb-16">
               <ModuleCard 
                 number={1}
-                title={t.modules.hook}
+                title={t.frameworkLabels[story.framework as FrameworkType]?.hook || t.modules.hook}
                 icon={Icons.Hook}
                 content={story.hook.content}
                 visualPrompt={story.hook.visualPrompt}
@@ -889,7 +1179,7 @@ function App() {
               />
               <ModuleCard 
                 number={2}
-                title={t.modules.context}
+                title={t.frameworkLabels[story.framework as FrameworkType]?.context || t.modules.context}
                 icon={Icons.Context}
                 content={story.context.content}
                 visualPrompt={story.context.visualPrompt}
@@ -899,7 +1189,7 @@ function App() {
               />
               <ModuleCard 
                 number={3}
-                title={t.modules.problem} 
+                title={t.frameworkLabels[story.framework as FrameworkType]?.problem || t.modules.problem} 
                 icon={Icons.Problem}
                 content={story.problem.content}
                 visualPrompt={story.problem.visualPrompt}
@@ -909,7 +1199,7 @@ function App() {
               />
               <ModuleCard 
                 number={4}
-                title={t.modules.escalation}
+                title={t.frameworkLabels[story.framework as FrameworkType]?.escalation || t.modules.escalation}
                 icon={Icons.Escalation}
                 content={story.escalation.content}
                 visualPrompt={story.escalation.visualPrompt}
@@ -919,7 +1209,7 @@ function App() {
               />
               <ModuleCard 
                 number={5}
-                title={t.modules.peak} 
+                title={t.frameworkLabels[story.framework as FrameworkType]?.peak || t.modules.peak} 
                 icon={Icons.Peak}
                 content={story.peak.content}
                 visualPrompt={story.peak.visualPrompt}
@@ -929,7 +1219,7 @@ function App() {
               />
               <ModuleCard 
                 number={6}
-                title={t.modules.resolution} 
+                title={t.frameworkLabels[story.framework as FrameworkType]?.resolution || t.modules.resolution} 
                 icon={Icons.Resolution}
                 content={story.resolution.content}
                 visualPrompt={story.resolution.visualPrompt}
@@ -939,7 +1229,7 @@ function App() {
               />
               <ModuleCard 
                 number={7}
-                title={t.modules.cta} 
+                title={t.frameworkLabels[story.framework as FrameworkType]?.cta || t.modules.cta} 
                 icon={Icons.CTA}
                 content={story.cta.content}
                 visualPrompt={story.cta.visualPrompt}

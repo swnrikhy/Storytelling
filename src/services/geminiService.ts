@@ -1,5 +1,5 @@
 import { GoogleGenAI, Type, Schema } from "@google/genai";
-import { ThemeType, FullStory, DurationType, Language, SocialMetadata, ThumbnailIdeas, HookIdea, ShortScriptIdea } from '../types';
+import { ThemeType, FullStory, DurationType, Language, SocialMetadata, ThumbnailIdeas, HookIdea, ShortScriptIdea, FrameworkType } from '../types';
 
 const apiKey = process.env.GEMINI_API_KEY;
 const ai = new GoogleGenAI({ apiKey: apiKey });
@@ -9,6 +9,7 @@ const storySchema: Schema = {
   properties: {
     title: { type: Type.STRING, description: "A catchy title for the story" },
     theme: { type: Type.STRING, description: "The theme of the story" },
+    framework: { type: Type.STRING, description: "The framework used for the story" },
     hook: {
       type: Type.OBJECT,
       properties: {
@@ -227,7 +228,14 @@ If requested, adjust drama, suspense, pacing, or emotional intensity.
 
 const MODEL_NAME = "gemini-3-flash-preview";
 
-export const generateStory = async (theme: ThemeType, duration: DurationType, language: Language, additionalInfo?: string, writingStyle?: string): Promise<FullStory> => {
+export const generateStory = async (
+  theme: ThemeType, 
+  duration: DurationType, 
+  language: Language, 
+  framework: FrameworkType,
+  additionalInfo?: string, 
+  writingStyle?: string
+): Promise<FullStory> => {
   let lengthInstruction = "";
   switch (duration) {
     case DurationType.SHORT:
@@ -241,6 +249,43 @@ export const generateStory = async (theme: ThemeType, duration: DurationType, la
       break;
   }
 
+  let frameworkInstruction = "";
+  switch (framework) {
+    case FrameworkType.NARRATIVE:
+      frameworkInstruction = "FRAMEWORK: Classic Narrative Arc (Hook → Context → Problem → Escalation → Peak → Resolution → CTA). Focus on storytelling and emotional journey.";
+      break;
+    case FrameworkType.PAS:
+      frameworkInstruction = "FRAMEWORK: Problem-Agitate-Solve. Map PAS to the 7 modules: Hook (Attention), Context (Introduce Problem), Problem (Agitate Problem), Escalation (Agitate Further), Peak (Present Solution), Resolution (Results/Proof), CTA (Action).";
+      break;
+    case FrameworkType.AIDA:
+      frameworkInstruction = "FRAMEWORK: AIDA (Attention, Interest, Desire, Action). Map to 7 modules: Hook (Attention), Context (Build Interest), Problem (Identify Need), Escalation (Build Desire), Peak (The Solution), Resolution (Satisfaction), CTA (Action).";
+      break;
+    case FrameworkType.LISTICLE:
+      frameworkInstruction = "FRAMEWORK: Listicle/Top Facts. Map to 7 modules: Hook (Intro/Hook), Context (Fact 1), Problem (Fact 2), Escalation (Fact 3), Peak (Fact 4 - The most shocking), Resolution (Fact 5/Summary), CTA (Engagement).";
+      break;
+    case FrameworkType.MYTH_BUSTING:
+      frameworkInstruction = "FRAMEWORK: Myth-Busting. Map to 7 modules: Hook (The Myth), Context (Why people believe it), Problem (The Flaw in the myth), Escalation (The Evidence), Peak (The Truth revealed), Resolution (Impact of the truth), CTA (Discussion).";
+      break;
+    case FrameworkType.TUTORIAL:
+      frameworkInstruction = "FRAMEWORK: Step-by-Step Tutorial. Map to 7 modules: Hook (The Result), Context (What you need), Problem (Common mistake), Escalation (Step 1-2), Peak (The Secret Step/Key), Resolution (Final Result), CTA (Try it).";
+      break;
+    case FrameworkType.BEFORE_AFTER:
+      frameworkInstruction = "FRAMEWORK: Before & After. Map to 7 modules: Hook (The Result/After), Context (The Starting Point/Before), Problem (The Struggle), Escalation (The Turning Point), Peak (The Transformation), Resolution (The New Reality), CTA (Call to Action).";
+      break;
+    case FrameworkType.COMPARISON:
+      frameworkInstruction = "FRAMEWORK: Comparison/Versus. Map to 7 modules: Hook (The Contenders), Context (Criteria 1), Problem (Criteria 2), Escalation (Criteria 3), Peak (The Winner/Verdict), Resolution (Final Thoughts), CTA (Which do you prefer?).";
+      break;
+    case FrameworkType.BEHIND_THE_SCENES:
+      frameworkInstruction = "FRAMEWORK: Behind the Scenes. Map to 7 modules: Hook (The Finished Product), Context (The Hidden Effort), Problem (The Challenge faced), Escalation (The Process/Secret), Peak (The Breakthrough), Resolution (The Final Result), CTA (Follow for more).";
+      break;
+    case FrameworkType.WHAT_IF:
+      frameworkInstruction = "FRAMEWORK: What If / Speculative. Map to 7 modules: Hook (The Big Question), Context (The Known Reality), Problem (The Divergence Point), Escalation (The Consequences), Peak (The Ultimate Outcome), Resolution (The Lesson/Reflection), CTA (What do you think?).";
+      break;
+    case FrameworkType.PERSONAL_STORY:
+      frameworkInstruction = "FRAMEWORK: Personal Story/Vulnerability. Map to 7 modules: Hook (The Vulnerable Moment), Context (The Background), Problem (The Internal Struggle), Escalation (The Breaking Point), Peak (The Realization), Resolution (The Healing/Growth), CTA (Share your story).";
+      break;
+  }
+
   const languageInstruction = language === 'id' 
     ? "IMPORTANT: The narrative content (title, content, etc.) MUST be written in Indonesian (Bahasa Indonesia). The metadata values can be in Indonesian or English, but the main story text must be Indonesian."
     : "The content MUST be written in English.";
@@ -249,6 +294,7 @@ export const generateStory = async (theme: ThemeType, duration: DurationType, la
     Generate a compelling, highly engaging story based on the theme: "${theme}".
     
     ${lengthInstruction}
+    ${frameworkInstruction}
     ${languageInstruction}
     
     ${writingStyle ? `Writing Style/Tone: ${writingStyle}` : ''}
@@ -257,7 +303,7 @@ export const generateStory = async (theme: ThemeType, duration: DurationType, la
     The story MUST be structured into 7 distinct modules: Hook, Context, Problem, Escalation, Peak, Resolution, and CTA.
     For each module, provide the specific metadata requested in the schema and the actual narrative content (paragraph or sentences) for that section.
     
-    Ensure the content flows naturally from one module to the next to form a cohesive story.
+    Ensure the content flows naturally from one module to the next to form a cohesive story, even while following the specified framework logic.
   `;
 
   try {

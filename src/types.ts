@@ -22,6 +22,20 @@ export enum DurationType {
   LONG = 'Long Form (10+ min)'
 }
 
+export enum FrameworkType {
+  NARRATIVE = 'Narrative Arc',
+  PAS = 'Problem-Agitate-Solve',
+  AIDA = 'Attention-Interest-Desire-Action',
+  LISTICLE = 'Listicle/Top Facts',
+  MYTH_BUSTING = 'Myth-Busting',
+  TUTORIAL = 'Step-by-Step Tutorial',
+  BEFORE_AFTER = 'Before & After',
+  COMPARISON = 'Comparison/Versus',
+  BEHIND_THE_SCENES = 'Behind the Scenes',
+  WHAT_IF = 'What If / Speculative',
+  PERSONAL_STORY = 'Personal Story/Vulnerability'
+}
+
 export interface StoryModule<T> {
   metadata: T;
   content: string; // The actual narrative text for this section
@@ -92,6 +106,7 @@ export interface HookIdea {
 export interface FullStory {
   title: string;
   theme: ThemeType;
+  framework: FrameworkType;
   hook: StoryModule<HookMetadata>;
   context: StoryModule<ContextMetadata>;
   problem: StoryModule<ProblemMetadata>;
