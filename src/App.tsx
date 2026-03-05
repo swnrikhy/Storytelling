@@ -84,7 +84,19 @@ const translations = {
     durations: {
       [DurationType.SHORT]: "< 60s (TikTok/Reels)",
       [DurationType.MEDIUM]: "1-3 mins (YouTube)",
-      [DurationType.LONG]: "8+ mins (Deep Dive)"
+      [DurationType.LONG]: "10+ mins (Deep Dive)"
+    },
+    writingStyle: "Writing Style / Tone",
+    writingStylePlaceholder: "e.g., Dramatic, Scientific, Casual, Storytelling...",
+    writingStyles: {
+      casual: "Casual",
+      dramatic: "Dramatic",
+      storytelling: "Storytelling",
+      scientific: "Scientific",
+      humorous: "Humorous",
+      suspenseful: "Suspenseful",
+      educational: "Educational",
+      professional: "Professional"
     },
     themeNames: {
       [ThemeType.HISTORY]: "History & Geo",
@@ -161,7 +173,19 @@ const translations = {
     durations: {
       [DurationType.SHORT]: "< 60s (TikTok/Reels/Shorts)",
       [DurationType.MEDIUM]: "1-3 mnt (YouTube Standar)",
-      [DurationType.LONG]: "8+ mnt (Pembahasan Mendalam)"
+      [DurationType.LONG]: "10+ mnt (Pembahasan Mendalam)"
+    },
+    writingStyle: "Gaya Bahasa / Nada",
+    writingStylePlaceholder: "Cth: Dramatis, Ilmiah, Santai, Storytelling...",
+    writingStyles: {
+      casual: "Santai (Casual)",
+      dramatic: "Dramatis (Dramatic)",
+      storytelling: "Bercerita (Storytelling)",
+      scientific: "Ilmiah (Scientific)",
+      humorous: "Lucu (Humorous)",
+      suspenseful: "Menegangkan (Suspenseful)",
+      educational: "Edukasi (Educational)",
+      professional: "Profesional (Professional)"
     },
     themeNames: {
       [ThemeType.HISTORY]: "Sejarah & Geo",
@@ -197,6 +221,7 @@ function App() {
   const [selectedTheme, setSelectedTheme] = useState<ThemeType>(ThemeType.HISTORY);
   const [selectedDuration, setSelectedDuration] = useState<DurationType>(DurationType.SHORT);
   const [additionalContext, setAdditionalContext] = useState('');
+  const [writingStyle, setWritingStyle] = useState('storytelling');
   const [isLoading, setIsLoading] = useState(false);
   const [isRewriting, setIsRewriting] = useState(false);
   const [isGeneratingHooks, setIsGeneratingHooks] = useState(false);
@@ -319,7 +344,8 @@ function App() {
     setThumbnailIdeas(null);
     setShortScripts([]);
     try {
-      const result = await generateStory(selectedTheme, selectedDuration, language, additionalContext);
+      const writingStyleLabel = t.writingStyles[writingStyle as keyof typeof t.writingStyles] || writingStyle;
+      const result = await generateStory(selectedTheme, selectedDuration, language, additionalContext, writingStyleLabel);
       setStory(result);
       addToHistory(result);
       setTimeout(() => {
@@ -656,6 +682,31 @@ function App() {
               </div>
             </div>
           )}
+        </section>
+
+        {/* Writing Style Selection - Dropdown */}
+        <section className="mb-8">
+          <label className="block text-xs font-medium uppercase tracking-widest text-zinc-500 mb-3 ml-1">
+            {t.writingStyle}
+          </label>
+          
+          <div className="relative">
+            <select
+              value={writingStyle}
+              onChange={(e) => setWritingStyle(e.target.value)}
+              className="w-full bg-zinc-900 text-zinc-200 border border-zinc-800 rounded-lg px-4 py-3.5 appearance-none focus:ring-1 focus:ring-zinc-600 focus:border-zinc-600 transition-all outline-none text-base font-medium cursor-pointer shadow-sm hover:border-zinc-700"
+            >
+              {Object.entries(t.writingStyles).map(([key, value]) => (
+                <option key={key} value={key} className="bg-zinc-900 text-zinc-200">
+                  {value as string}
+                </option>
+              ))}
+            </select>
+            {/* Custom Icon for Dropdown */}
+            <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-4 text-zinc-500">
+              <svg className="fill-current h-4 w-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"><path d="M9.293 12.95l.707.707L15.657 8l-1.414-1.414L10 10.828 5.757 6.586 4.343 8z"/></svg>
+            </div>
+          </div>
         </section>
 
         {/* Duration Selection */}

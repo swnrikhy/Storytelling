@@ -227,7 +227,7 @@ If requested, adjust drama, suspense, pacing, or emotional intensity.
 
 const MODEL_NAME = "gemini-3-flash-preview";
 
-export const generateStory = async (theme: ThemeType, duration: DurationType, language: Language, additionalInfo?: string): Promise<FullStory> => {
+export const generateStory = async (theme: ThemeType, duration: DurationType, language: Language, additionalInfo?: string, writingStyle?: string): Promise<FullStory> => {
   let lengthInstruction = "";
   switch (duration) {
     case DurationType.SHORT:
@@ -237,7 +237,7 @@ export const generateStory = async (theme: ThemeType, duration: DurationType, la
       lengthInstruction = "LENGTH CONSTRAINT: Target a narrative of 400-600 words total. Allow for moderate detail, character feelings, and setting the scene. Ideal for standard YouTube videos or Vlogs (1-3 mins).";
       break;
     case DurationType.LONG:
-      lengthInstruction = "LENGTH CONSTRAINT: Target a comprehensive narrative of 1500+ words total. Provide extensive sensory details, deep character development, complex dialogue scenes, and thorough exploration of the conflict and resolution. Ideal for In-depth Video Essays, Documentaries, or Extended Storytime (8+ mins).";
+      lengthInstruction = "LENGTH CONSTRAINT: Target a comprehensive narrative of 1800+ words total. Provide extensive sensory details, deep character development, complex dialogue scenes, and thorough exploration of the conflict and resolution. Ideal for In-depth Video Essays, Documentaries, or Extended Storytime (10+ mins).";
       break;
   }
 
@@ -251,6 +251,7 @@ export const generateStory = async (theme: ThemeType, duration: DurationType, la
     ${lengthInstruction}
     ${languageInstruction}
     
+    ${writingStyle ? `Writing Style/Tone: ${writingStyle}` : ''}
     ${additionalInfo ? `Additional Context/Requirements: ${additionalInfo}` : ''}
     
     The story MUST be structured into 7 distinct modules: Hook, Context, Problem, Escalation, Peak, Resolution, and CTA.

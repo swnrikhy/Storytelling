@@ -19,7 +19,7 @@ export enum ThemeType {
 export enum DurationType {
   SHORT = 'Short Form (< 60s)',
   MEDIUM = 'Standard (1-3 min)',
-  LONG = 'Long Form (8+ min)'
+  LONG = 'Long Form (10+ min)'
 }
 
 export interface StoryModule<T> {
