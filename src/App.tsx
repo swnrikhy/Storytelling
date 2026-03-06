@@ -516,6 +516,7 @@ function App() {
   // BYOK State
   const [isApiKeySet, setIsApiKeySet] = useState<boolean>(true); // Default true to prevent flash
   const [showApiKeyModal, setShowApiKeyModal] = useState(false);
+  const [apiKeyInput, setApiKeyInput] = useState('');
   
   // Refs
   const resultRef = useRef<HTMLDivElement>(null);
@@ -531,12 +532,25 @@ function App() {
       const aistudio = (window as any).aistudio;
       if (aistudio && typeof aistudio.hasSelectedApiKey === 'function') {
         const hasKey = await aistudio.hasSelectedApiKey();
-        setIsApiKeySet(hasKey);
-        if (!hasKey) {
-          setShowApiKeyModal(true);
+        if (hasKey) {
+          setIsApiKeySet(true);
+        } else {
+          const localKey = localStorage.getItem('gemini_api_key');
+          if (localKey) {
+            setIsApiKeySet(true);
+          } else {
+            setIsApiKeySet(false);
+            setShowApiKeyModal(true);
+          }
         }
       } else {
-        setIsApiKeySet(true); // Assume set in local dev via .env
+        const key = localStorage.getItem('gemini_api_key');
+        if (!key) {
+          setIsApiKeySet(false);
+          setShowApiKeyModal(true);
+        } else {
+          setIsApiKeySet(true);
+        }
       }
     };
     
@@ -598,6 +612,21 @@ function App() {
       setIsApiKeySet(true);
       setShowApiKeyModal(false);
     }
+  };
+
+  const handleSaveApiKey = () => {
+    if (apiKeyInput.trim()) {
+      localStorage.setItem('gemini_api_key', apiKeyInput.trim());
+      setIsApiKeySet(true);
+      setShowApiKeyModal(false);
+      setApiKeyInput('');
+    }
+  };
+
+  const handleRemoveApiKey = () => {
+    localStorage.removeItem('gemini_api_key');
+    setIsApiKeySet(false);
+    setApiKeyInput('');
   };
 
   const handleOpenApiKeyModal = () => {
@@ -1498,6 +1527,19 @@ function App() {
                 <a href="https://ai.google.dev/gemini-api/docs/billing" target="_blank" rel="noreferrer" className="text-indigo-400 hover:underline mt-2 inline-block">Learn about billing</a>.
               </p>
               
+              <div className="text-left mb-6">
+                <label className="block text-[10px] font-bold uppercase tracking-widest text-zinc-500 mb-2 ml-1">
+                  Manual Input (Optional)
+                </label>
+                <input
+                  type="password"
+                  placeholder="AIzaSy..."
+                  value={apiKeyInput}
+                  onChange={(e) => setApiKeyInput(e.target.value)}
+                  className="w-full bg-zinc-950 border border-zinc-700 rounded-lg px-4 py-3 text-zinc-200 focus:ring-1 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition-all"
+                />
+              </div>
+
               <div className="flex flex-col gap-3">
                 <button
                   onClick={handleOpenSelectKey}
@@ -1505,6 +1547,23 @@ function App() {
                 >
                   {t.getApiKey}
                 </button>
+
+                <button
+                  onClick={handleSaveApiKey}
+                  disabled={!apiKeyInput.trim()}
+                  className="w-full bg-zinc-800 text-white hover:bg-zinc-700 disabled:opacity-50 disabled:cursor-not-allowed font-medium py-3 px-4 rounded-lg transition-colors"
+                >
+                  Save Manual Key
+                </button>
+                
+                {isApiKeySet && (
+                  <button
+                    onClick={handleRemoveApiKey}
+                    className="w-full bg-red-500/10 text-red-400 hover:bg-red-500/20 font-medium py-3 px-4 rounded-lg transition-colors"
+                  >
+                    Remove Current Key
+                  </button>
+                )}
               </div>
             </div>
           </div>

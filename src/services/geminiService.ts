@@ -2,7 +2,8 @@ import { GoogleGenAI, Type, Schema } from "@google/genai";
 import { ThemeType, FullStory, DurationType, Language, SocialMetadata, ThumbnailIdeas, HookIdea, ShortScriptIdea, FrameworkType } from '../types';
 
 const getAI = () => {
-  const key = process.env.API_KEY || process.env.GEMINI_API_KEY;
+  const manualKey = typeof window !== 'undefined' ? localStorage.getItem('gemini_api_key') : null;
+  const key = manualKey || process.env.API_KEY || process.env.GEMINI_API_KEY;
   return new GoogleGenAI({ apiKey: key });
 };
 
