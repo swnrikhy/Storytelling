@@ -653,8 +653,13 @@ function App() {
       setTimeout(() => {
         resultRef.current?.scrollIntoView({ behavior: 'smooth' });
       }, 100);
-    } catch (error) {
-      alert(t.failedStory);
+    } catch (error: any) {
+      if (error.message === "API_KEY_MISSING") {
+        alert("API Key is missing. Please set your Gemini API Key.");
+        setShowApiKeyModal(true);
+      } else {
+        alert(t.failedStory);
+      }
     } finally {
       setIsLoading(false);
     }
@@ -666,8 +671,13 @@ function App() {
     try {
       const result = await rewriteStory(story, language);
       setStory(result);
-    } catch (error) {
-      alert(t.failedRewrite);
+    } catch (error: any) {
+      if (error.message === "API_KEY_MISSING") {
+        alert("API Key is missing. Please set your Gemini API Key.");
+        setShowApiKeyModal(true);
+      } else {
+        alert(t.failedRewrite);
+      }
     } finally {
       setIsRewriting(false);
     }
@@ -678,8 +688,13 @@ function App() {
     try {
       const hooks = await generateHooks(additionalContext, selectedTheme, language);
       setGeneratedHooks(hooks);
-    } catch (error) {
-      alert(t.failedHooks);
+    } catch (error: any) {
+      if (error.message === "API_KEY_MISSING") {
+        alert("API Key is missing. Please set your Gemini API Key.");
+        setShowApiKeyModal(true);
+      } else {
+        alert(t.failedHooks);
+      }
     } finally {
       setIsGeneratingHooks(false);
     }
@@ -695,9 +710,14 @@ function App() {
       setTimeout(() => {
         distributionRef.current?.scrollIntoView({ behavior: 'smooth' });
       }, 100);
-    } catch (error) {
+    } catch (error: any) {
       console.error(error);
-      alert("Failed to generate metadata");
+      if (error.message === "API_KEY_MISSING") {
+        alert("API Key is missing. Please set your Gemini API Key.");
+        setShowApiKeyModal(true);
+      } else {
+        alert("Failed to generate metadata");
+      }
     } finally {
       setIsGeneratingMetadata(false);
     }
@@ -713,9 +733,14 @@ function App() {
       setTimeout(() => {
         distributionRef.current?.scrollIntoView({ behavior: 'smooth' });
       }, 100);
-    } catch (error) {
+    } catch (error: any) {
       console.error(error);
-      alert("Failed to generate thumbnail ideas");
+      if (error.message === "API_KEY_MISSING") {
+        alert("API Key is missing. Please set your Gemini API Key.");
+        setShowApiKeyModal(true);
+      } else {
+        alert("Failed to generate thumbnail ideas");
+      }
     } finally {
       setIsGeneratingThumbnail(false);
     }
@@ -731,9 +756,14 @@ function App() {
       setTimeout(() => {
         distributionRef.current?.scrollIntoView({ behavior: 'smooth' });
       }, 100);
-    } catch (error) {
+    } catch (error: any) {
       console.error(error);
-      alert("Failed to generate short scripts");
+      if (error.message === "API_KEY_MISSING") {
+        alert("API Key is missing. Please set your Gemini API Key.");
+        setShowApiKeyModal(true);
+      } else {
+        alert("Failed to generate short scripts");
+      }
     } finally {
       setIsGeneratingShortScript(false);
     }
