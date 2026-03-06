@@ -4,7 +4,7 @@ const API_KEY = import.meta.env.VITE_OPENROUTER_API_KEY;
 const SITE_URL = window.location.origin;
 const SITE_NAME = 'Narrative Nexus';
 
-const openRouter = new OpenRouter({
+export const openRouter = new OpenRouter({
   apiKey: API_KEY,
   httpReferer: SITE_URL,
   xTitle: SITE_NAME,

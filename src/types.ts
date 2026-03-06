@@ -132,6 +132,7 @@ export interface SocialMetadata {
 export interface ThumbnailIdeas {
   imagePrompt: string;
   textOverlays: string[];
+  imageUrl?: string;
 }
 
 export interface HistoryItem {
@@ -142,5 +143,3 @@ export interface HistoryItem {
   thumbnailIdeas: ThumbnailIdeas | null;
   shortScripts: ShortScriptIdea[];
 }
-
-export type AiProvider = 'gemini' | 'openai';

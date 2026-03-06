@@ -1,9 +1,9 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { ThemeType, FullStory, DurationType, Language, SocialMetadata, ThumbnailIdeas, HookIdea, ShortScriptIdea, FrameworkType } from './types';
-import { generateStory, generateHooks, rewriteStory, generateSocialMetadata, generateThumbnail, generateShortScript } from './services/geminiService';
+import { generateStory, generateHooks, rewriteStory, generateSocialMetadata, generateThumbnail, generateShortScript, generateImage } from './services/geminiService';
 import { ModuleCard } from './components/ModuleCard';
 
-import { OpenRouterTest } from './components/OpenRouterTest';
+
 
 // Simplified Icons (Thinner strokes for elegance)
 const Icons = {
@@ -497,7 +497,14 @@ function App() {
   const [selectedFramework, setSelectedFramework] = useState<FrameworkType>(FrameworkType.NARRATIVE);
   const [additionalContext, setAdditionalContext] = useState('');
   const [writingStyle, setWritingStyle] = useState('storytelling');
+  const [selectedModel, setSelectedModel] = useState('gemini-3-flash-preview');
+  const [customModel, setCustomModel] = useState('');
+  const [isCustomModel, setIsCustomModel] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+
+  const models = [
+    { id: 'gemini-3-flash-preview', name: 'Gemini 3 Flash (Default)' },
+  ];
   const [isRewriting, setIsRewriting] = useState(false);
   const [isGeneratingHooks, setIsGeneratingHooks] = useState(false);
   const [generatedHooks, setGeneratedHooks] = useState<HookIdea[]>([]);
@@ -649,7 +656,8 @@ function App() {
     setShortScripts([]);
     try {
       const writingStyleLabel = t.writingStyles[writingStyle as keyof typeof t.writingStyles] || writingStyle;
-      const result = await generateStory(selectedTheme, selectedDuration, language, selectedFramework, additionalContext, writingStyleLabel);
+      const modelToUse = isCustomModel ? customModel : selectedModel;
+      const result = await generateStory(selectedTheme, selectedDuration, language, selectedFramework, additionalContext, writingStyleLabel, modelToUse);
       setStory(result);
       addToHistory(result);
       setTimeout(() => {
@@ -666,7 +674,8 @@ function App() {
     if (!story) return;
     setIsRewriting(true);
     try {
-      const result = await rewriteStory(story, language);
+      const modelToUse = isCustomModel ? customModel : selectedModel;
+      const result = await rewriteStory(story, language, modelToUse);
       setStory(result);
     } catch (error) {
       alert(t.failedRewrite);
@@ -678,7 +687,8 @@ function App() {
   const handleGenerateHooks = async () => {
     setIsGeneratingHooks(true);
     try {
-      const hooks = await generateHooks(additionalContext, selectedTheme, language);
+      const modelToUse = isCustomModel ? customModel : selectedModel;
+      const hooks = await generateHooks(additionalContext, selectedTheme, language, modelToUse);
       setGeneratedHooks(hooks);
     } catch (error) {
       alert(t.failedHooks);
@@ -691,7 +701,8 @@ function App() {
     if (!story) return;
     setIsGeneratingMetadata(true);
     try {
-      const metadata = await generateSocialMetadata(story, language);
+      const modelToUse = isCustomModel ? customModel : selectedModel;
+      const metadata = await generateSocialMetadata(story, language, modelToUse);
       setSocialMetadata(metadata);
       updateHistoryItem({ socialMetadata: metadata });
       setTimeout(() => {
@@ -709,15 +720,39 @@ function App() {
     if (!story) return;
     setIsGeneratingThumbnail(true);
     try {
-      const ideas = await generateThumbnail(story, language);
-      setThumbnailIdeas(ideas);
-      updateHistoryItem({ thumbnailIdeas: ideas });
+      const modelToUse = isCustomModel ? customModel : selectedModel;
+      
+      // Check if the selected model is an image generation model
+      const isImageModel = modelToUse.includes('seed') || modelToUse.includes('image');
+      
+      if (isImageModel) {
+        // If it's an image model, first generate the prompt using a text model (defaulting to Gemini)
+        // Then use the selected image model to generate the actual image
+        
+        // 1. Generate the prompt using Gemini (or another text model)
+        const ideas = await generateThumbnail(story, language, 'gemini-3-flash-preview');
+        
+        // 2. Generate the image using the selected image model
+        const imageUrl = await generateImage(ideas.imagePrompt, modelToUse);
+        
+        // Combine the results
+        const finalIdeas = { ...ideas, imageUrl };
+        
+        setThumbnailIdeas(finalIdeas);
+        updateHistoryItem({ thumbnailIdeas: finalIdeas });
+      } else {
+        // Standard text-based generation
+        const ideas = await generateThumbnail(story, language, modelToUse);
+        setThumbnailIdeas(ideas);
+        updateHistoryItem({ thumbnailIdeas: ideas });
+      }
+
       setTimeout(() => {
         distributionRef.current?.scrollIntoView({ behavior: 'smooth' });
       }, 100);
     } catch (error) {
       console.error(error);
-      alert("Failed to generate thumbnail ideas");
+      alert("Failed to generate thumbnail ideas or image");
     } finally {
       setIsGeneratingThumbnail(false);
     }
@@ -727,7 +762,8 @@ function App() {
     if (!story) return;
     setIsGeneratingShortScript(true);
     try {
-      const scripts = await generateShortScript(story, language);
+      const modelToUse = isCustomModel ? customModel : selectedModel;
+      const scripts = await generateShortScript(story, language, modelToUse);
       setShortScripts(scripts);
       updateHistoryItem({ shortScripts: scripts });
       setTimeout(() => {
@@ -1082,6 +1118,50 @@ function App() {
             </div>
         </section>
 
+        {/* Model Selection */}
+        <section className="mb-8">
+          <label className="block text-xs font-medium uppercase tracking-widest text-zinc-500 mb-3 ml-1">
+            AI Model
+          </label>
+          
+          <div className="grid grid-cols-1 gap-3">
+            <div className="relative">
+              <select
+                value={isCustomModel ? 'custom' : selectedModel}
+                onChange={(e) => {
+                  if (e.target.value === 'custom') {
+                    setIsCustomModel(true);
+                  } else {
+                    setIsCustomModel(false);
+                    setSelectedModel(e.target.value);
+                  }
+                }}
+                className="w-full bg-zinc-900 text-zinc-200 border border-zinc-800 rounded-lg px-4 py-3.5 appearance-none focus:ring-1 focus:ring-zinc-600 focus:border-zinc-600 transition-all outline-none text-base font-medium cursor-pointer shadow-sm hover:border-zinc-700"
+              >
+                {models.map((m) => (
+                  <option key={m.id} value={m.id} className="bg-zinc-900 text-zinc-200">
+                    {m.name}
+                  </option>
+                ))}
+              </select>
+              {/* Custom Icon for Dropdown */}
+              <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-4 text-zinc-500">
+                <svg className="fill-current h-4 w-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"><path d="M9.293 12.95l.707.707L15.657 8l-1.414-1.414L10 10.828 5.757 6.586 4.343 8z"/></svg>
+              </div>
+            </div>
+
+            {isCustomModel && (
+              <input
+                type="text"
+                value={customModel}
+                onChange={(e) => setCustomModel(e.target.value)}
+                placeholder="Enter custom model ID (e.g., openai/gpt-4-turbo)"
+                className="w-full bg-zinc-900 text-zinc-200 border border-zinc-800 rounded-lg px-4 py-3.5 focus:ring-1 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition-all placeholder-zinc-600"
+              />
+            )}
+          </div>
+        </section>
+
         {/* Input Section */}
         <section className="mb-12">
           <div className="mb-6">
@@ -1433,6 +1513,28 @@ function App() {
 
                   {thumbnailIdeas ? (
                     <div className="animate-fadeIn mt-2 text-sm space-y-5">
+                       {thumbnailIdeas.imageUrl && (
+                         <div className="mb-4">
+                           <div className="relative aspect-video rounded-lg overflow-hidden border border-zinc-800 group">
+                             <img 
+                               src={thumbnailIdeas.imageUrl} 
+                               alt="Generated Thumbnail" 
+                               className="w-full h-full object-cover"
+                             />
+                             <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                               <a 
+                                 href={thumbnailIdeas.imageUrl} 
+                                 target="_blank" 
+                                 rel="noreferrer"
+                                 className="px-4 py-2 bg-white text-black rounded-full text-xs font-bold hover:bg-zinc-200 transition-colors"
+                               >
+                                 View Full Size
+                               </a>
+                             </div>
+                           </div>
+                         </div>
+                       )}
+
                        <div>
                           <div className="flex justify-between items-end mb-2">
                              <span className="text-xs uppercase text-zinc-500 font-bold">Image Prompt</span>
@@ -1543,10 +1645,7 @@ function App() {
           </div>
         )}
 
-        {/* OpenRouter Test Section */}
-        <div className="max-w-5xl mx-auto px-6 mt-12">
-          <OpenRouterTest />
-        </div>
+
 
         {/* History Section at the bottom */}
         <div ref={historyRef} className="max-w-5xl mx-auto px-6 mt-20 pt-12 border-t border-zinc-800/50">
