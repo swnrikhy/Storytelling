@@ -1,6 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { ThemeType, FullStory, DurationType, Language, SocialMetadata, ThumbnailIdeas, HookIdea, ShortScriptIdea, FrameworkType } from './types';
+import { ThemeType, FullStory, DurationType, Language, SocialMetadata, ThumbnailIdeas, HookIdea, ShortScriptIdea, FrameworkType, AiProvider } from './types';
 import { generateStory, generateHooks, rewriteStory, generateSocialMetadata, generateThumbnail, generateShortScript } from './services/geminiService';
+import { generateStoryOpenAI, generateHooksOpenAI, rewriteStoryOpenAI, generateSocialMetadataOpenAI, generateShortScriptOpenAI, generateThumbnailOpenAI } from './services/openaiService';
 import { ModuleCard } from './components/ModuleCard';
 
 // Simplified Icons (Thinner strokes for elegance)
@@ -516,6 +517,9 @@ function App() {
   const [isApiKeySet, setIsApiKeySet] = useState<boolean>(true); // Default true to prevent flash
   const [showApiKeyModal, setShowApiKeyModal] = useState(false);
   const [apiKeyInput, setApiKeyInput] = useState('');
+  const [aiProvider, setAiProvider] = useState<AiProvider>('gemini');
+  const [openaiApiKeyInput, setOpenaiApiKeyInput] = useState('');
+  const [isOpenaiApiKeySet, setIsOpenaiApiKeySet] = useState(false);
   
   // Refs
   const resultRef = useRef<HTMLDivElement>(null);
@@ -550,6 +554,11 @@ function App() {
         } else {
           setIsApiKeySet(true);
         }
+      }
+
+      const openaiKey = localStorage.getItem('openai_api_key');
+      if (openaiKey) {
+        setIsOpenaiApiKeySet(true);
       }
     };
     
@@ -614,18 +623,33 @@ function App() {
   };
 
   const handleSaveApiKey = () => {
-    if (apiKeyInput.trim()) {
-      localStorage.setItem('gemini_api_key', apiKeyInput.trim());
-      setIsApiKeySet(true);
-      setShowApiKeyModal(false);
-      setApiKeyInput('');
+    if (aiProvider === 'gemini') {
+      if (apiKeyInput.trim()) {
+        localStorage.setItem('gemini_api_key', apiKeyInput.trim());
+        setIsApiKeySet(true);
+        setShowApiKeyModal(false);
+        setApiKeyInput('');
+      }
+    } else {
+      if (openaiApiKeyInput.trim()) {
+        localStorage.setItem('openai_api_key', openaiApiKeyInput.trim());
+        setIsOpenaiApiKeySet(true);
+        setShowApiKeyModal(false);
+        setOpenaiApiKeyInput('');
+      }
     }
   };
 
   const handleRemoveApiKey = () => {
-    localStorage.removeItem('gemini_api_key');
-    setIsApiKeySet(false);
-    setApiKeyInput('');
+    if (aiProvider === 'gemini') {
+      localStorage.removeItem('gemini_api_key');
+      setIsApiKeySet(false);
+      setApiKeyInput('');
+    } else {
+      localStorage.removeItem('openai_api_key');
+      setIsOpenaiApiKeySet(false);
+      setOpenaiApiKeyInput('');
+    }
   };
 
   const handleOpenApiKeyModal = () => {
@@ -647,7 +671,12 @@ function App() {
     setShortScripts([]);
     try {
       const writingStyleLabel = t.writingStyles[writingStyle as keyof typeof t.writingStyles] || writingStyle;
-      const result = await generateStory(selectedTheme, selectedDuration, language, selectedFramework, additionalContext, writingStyleLabel);
+      let result;
+      if (aiProvider === 'gemini') {
+        result = await generateStory(selectedTheme, selectedDuration, language, selectedFramework, additionalContext, writingStyleLabel);
+      } else {
+        result = await generateStoryOpenAI(selectedTheme, selectedDuration, language, selectedFramework, additionalContext, writingStyleLabel);
+      }
       setStory(result);
       addToHistory(result);
       setTimeout(() => {
@@ -655,7 +684,10 @@ function App() {
       }, 100);
     } catch (error: any) {
       if (error.message === "API_KEY_MISSING") {
-        alert("API Key is missing. Please set your Gemini API Key.");
+        alert("Gemini API Key is missing. Please set it in settings.");
+        setShowApiKeyModal(true);
+      } else if (error.message === "OPENAI_API_KEY_MISSING") {
+        alert("OpenAI API Key is missing. Please set it in settings.");
         setShowApiKeyModal(true);
       } else {
         alert(t.failedStory);
@@ -669,11 +701,19 @@ function App() {
     if (!story) return;
     setIsRewriting(true);
     try {
-      const result = await rewriteStory(story, language);
+      let result;
+      if (aiProvider === 'gemini') {
+        result = await rewriteStory(story, language);
+      } else {
+        result = await rewriteStoryOpenAI(story, language);
+      }
       setStory(result);
     } catch (error: any) {
       if (error.message === "API_KEY_MISSING") {
-        alert("API Key is missing. Please set your Gemini API Key.");
+        alert("Gemini API Key is missing. Please set it in settings.");
+        setShowApiKeyModal(true);
+      } else if (error.message === "OPENAI_API_KEY_MISSING") {
+        alert("OpenAI API Key is missing. Please set it in settings.");
         setShowApiKeyModal(true);
       } else {
         alert(t.failedRewrite);
@@ -686,11 +726,19 @@ function App() {
   const handleGenerateHooks = async () => {
     setIsGeneratingHooks(true);
     try {
-      const hooks = await generateHooks(additionalContext, selectedTheme, language);
+      let hooks;
+      if (aiProvider === 'gemini') {
+        hooks = await generateHooks(additionalContext, selectedTheme, language);
+      } else {
+        hooks = await generateHooksOpenAI(additionalContext, selectedTheme, language);
+      }
       setGeneratedHooks(hooks);
     } catch (error: any) {
       if (error.message === "API_KEY_MISSING") {
-        alert("API Key is missing. Please set your Gemini API Key.");
+        alert("Gemini API Key is missing. Please set it in settings.");
+        setShowApiKeyModal(true);
+      } else if (error.message === "OPENAI_API_KEY_MISSING") {
+        alert("OpenAI API Key is missing. Please set it in settings.");
         setShowApiKeyModal(true);
       } else {
         alert(t.failedHooks);
@@ -704,7 +752,12 @@ function App() {
     if (!story) return;
     setIsGeneratingMetadata(true);
     try {
-      const metadata = await generateSocialMetadata(story, language);
+      let metadata;
+      if (aiProvider === 'gemini') {
+        metadata = await generateSocialMetadata(story, language);
+      } else {
+        metadata = await generateSocialMetadataOpenAI(story, language);
+      }
       setSocialMetadata(metadata);
       updateHistoryItem({ socialMetadata: metadata });
       setTimeout(() => {
@@ -713,7 +766,10 @@ function App() {
     } catch (error: any) {
       console.error(error);
       if (error.message === "API_KEY_MISSING") {
-        alert("API Key is missing. Please set your Gemini API Key.");
+        alert("Gemini API Key is missing. Please set it in settings.");
+        setShowApiKeyModal(true);
+      } else if (error.message === "OPENAI_API_KEY_MISSING") {
+        alert("OpenAI API Key is missing. Please set it in settings.");
         setShowApiKeyModal(true);
       } else {
         alert("Failed to generate metadata");
@@ -727,7 +783,12 @@ function App() {
     if (!story) return;
     setIsGeneratingThumbnail(true);
     try {
-      const ideas = await generateThumbnail(story, language);
+      let ideas;
+      if (aiProvider === 'gemini') {
+        ideas = await generateThumbnail(story, language);
+      } else {
+        ideas = await generateThumbnailOpenAI(story, language);
+      }
       setThumbnailIdeas(ideas);
       updateHistoryItem({ thumbnailIdeas: ideas });
       setTimeout(() => {
@@ -736,7 +797,10 @@ function App() {
     } catch (error: any) {
       console.error(error);
       if (error.message === "API_KEY_MISSING") {
-        alert("API Key is missing. Please set your Gemini API Key.");
+        alert("Gemini API Key is missing. Please set it in settings.");
+        setShowApiKeyModal(true);
+      } else if (error.message === "OPENAI_API_KEY_MISSING") {
+        alert("OpenAI API Key is missing. Please set it in settings.");
         setShowApiKeyModal(true);
       } else {
         alert("Failed to generate thumbnail ideas");
@@ -750,7 +814,12 @@ function App() {
     if (!story) return;
     setIsGeneratingShortScript(true);
     try {
-      const scripts = await generateShortScript(story, language);
+      let scripts;
+      if (aiProvider === 'gemini') {
+        scripts = await generateShortScript(story, language);
+      } else {
+        scripts = await generateShortScriptOpenAI(story, language);
+      }
       setShortScripts(scripts);
       updateHistoryItem({ shortScripts: scripts });
       setTimeout(() => {
@@ -759,7 +828,10 @@ function App() {
     } catch (error: any) {
       console.error(error);
       if (error.message === "API_KEY_MISSING") {
-        alert("API Key is missing. Please set your Gemini API Key.");
+        alert("Gemini API Key is missing. Please set it in settings.");
+        setShowApiKeyModal(true);
+      } else if (error.message === "OPENAI_API_KEY_MISSING") {
+        alert("OpenAI API Key is missing. Please set it in settings.");
         setShowApiKeyModal(true);
       } else {
         alert("Failed to generate short scripts");
@@ -1521,52 +1593,112 @@ function App() {
                 <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M21 2l-2 2m-7.61 7.61a5.5 5.5 0 1 1-7.778 7.778 5.5 5.5 0 0 1 7.777-7.777zm0 0L15.5 7.5m0 0l3 3L22 7l-3-3m-3.5 3.5L19 4"></path></svg>
               </div>
               <h2 className="text-2xl font-bold text-white mb-3">
-                {t.selectApiKey}
+                Select AI Provider
               </h2>
-              <p className="text-zinc-400 mb-6 leading-relaxed text-sm">
-                {t.apiKeyDescription}
-                <br/>
-                <a href="https://ai.google.dev/gemini-api/docs/billing" target="_blank" rel="noreferrer" className="text-indigo-400 hover:underline mt-2 inline-block">Learn about billing</a>.
-              </p>
-              
-              <div className="text-left mb-6">
-                <label className="block text-[10px] font-bold uppercase tracking-widest text-zinc-500 mb-2 ml-1">
-                  Manual Input (Optional)
-                </label>
-                <input
-                  type="password"
-                  placeholder="AIzaSy..."
-                  value={apiKeyInput}
-                  onChange={(e) => setApiKeyInput(e.target.value)}
-                  className="w-full bg-zinc-950 border border-zinc-700 rounded-lg px-4 py-3 text-zinc-200 focus:ring-1 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition-all"
-                />
+
+              <div className="flex gap-2 mb-6 p-1 bg-zinc-950 rounded-lg border border-zinc-800">
+                <button
+                  onClick={() => setAiProvider('gemini')}
+                  className={`flex-1 py-2 rounded-md text-sm font-medium transition-all ${aiProvider === 'gemini' ? 'bg-zinc-800 text-white shadow-sm' : 'text-zinc-500 hover:text-zinc-300'}`}
+                >
+                  Google Gemini
+                </button>
+                <button
+                  onClick={() => setAiProvider('openai')}
+                  className={`flex-1 py-2 rounded-md text-sm font-medium transition-all ${aiProvider === 'openai' ? 'bg-zinc-800 text-white shadow-sm' : 'text-zinc-500 hover:text-zinc-300'}`}
+                >
+                  OpenAI (GPT-4o)
+                </button>
               </div>
 
-              <div className="flex flex-col gap-3">
-                <button
-                  onClick={handleOpenSelectKey}
-                  className="w-full bg-white text-black hover:bg-zinc-200 disabled:opacity-50 disabled:cursor-not-allowed font-medium py-3 px-4 rounded-lg transition-colors"
-                >
-                  {t.getApiKey}
-                </button>
+              {aiProvider === 'gemini' ? (
+                <>
+                  <p className="text-zinc-400 mb-6 leading-relaxed text-sm">
+                    {t.apiKeyDescription}
+                    <br/>
+                    <a href="https://ai.google.dev/gemini-api/docs/billing" target="_blank" rel="noreferrer" className="text-indigo-400 hover:underline mt-2 inline-block">Learn about billing</a>.
+                  </p>
+                  
+                  <div className="text-left mb-6">
+                    <label className="block text-[10px] font-bold uppercase tracking-widest text-zinc-500 mb-2 ml-1">
+                      Manual Input (Optional)
+                    </label>
+                    <input
+                      type="password"
+                      placeholder="AIzaSy..."
+                      value={apiKeyInput}
+                      onChange={(e) => setApiKeyInput(e.target.value)}
+                      className="w-full bg-zinc-950 border border-zinc-700 rounded-lg px-4 py-3 text-zinc-200 focus:ring-1 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition-all"
+                    />
+                  </div>
 
-                <button
-                  onClick={handleSaveApiKey}
-                  disabled={!apiKeyInput.trim()}
-                  className="w-full bg-zinc-800 text-white hover:bg-zinc-700 disabled:opacity-50 disabled:cursor-not-allowed font-medium py-3 px-4 rounded-lg transition-colors"
-                >
-                  Save Manual Key
-                </button>
-                
-                {isApiKeySet && (
-                  <button
-                    onClick={handleRemoveApiKey}
-                    className="w-full bg-red-500/10 text-red-400 hover:bg-red-500/20 font-medium py-3 px-4 rounded-lg transition-colors"
-                  >
-                    Remove Current Key
-                  </button>
-                )}
-              </div>
+                  <div className="flex flex-col gap-3">
+                    <button
+                      onClick={handleOpenSelectKey}
+                      className="w-full bg-white text-black hover:bg-zinc-200 disabled:opacity-50 disabled:cursor-not-allowed font-medium py-3 px-4 rounded-lg transition-colors"
+                    >
+                      {t.getApiKey}
+                    </button>
+
+                    <button
+                      onClick={handleSaveApiKey}
+                      disabled={!apiKeyInput.trim()}
+                      className="w-full bg-zinc-800 text-white hover:bg-zinc-700 disabled:opacity-50 disabled:cursor-not-allowed font-medium py-3 px-4 rounded-lg transition-colors"
+                    >
+                      Save Manual Key
+                    </button>
+                    
+                    {isApiKeySet && (
+                      <button
+                        onClick={handleRemoveApiKey}
+                        className="w-full bg-red-500/10 text-red-400 hover:bg-red-500/20 font-medium py-3 px-4 rounded-lg transition-colors"
+                      >
+                        Remove Current Key
+                      </button>
+                    )}
+                  </div>
+                </>
+              ) : (
+                <>
+                  <p className="text-zinc-400 mb-6 leading-relaxed text-sm">
+                    To use OpenAI models, you need to provide your own API Key.
+                    <br/>
+                    <a href="https://platform.openai.com/api-keys" target="_blank" rel="noreferrer" className="text-indigo-400 hover:underline mt-2 inline-block">Get your API Key here</a>.
+                  </p>
+                  
+                  <div className="text-left mb-6">
+                    <label className="block text-[10px] font-bold uppercase tracking-widest text-zinc-500 mb-2 ml-1">
+                      OpenAI API Key
+                    </label>
+                    <input
+                      type="password"
+                      placeholder="sk-..."
+                      value={openaiApiKeyInput}
+                      onChange={(e) => setOpenaiApiKeyInput(e.target.value)}
+                      className="w-full bg-zinc-950 border border-zinc-700 rounded-lg px-4 py-3 text-zinc-200 focus:ring-1 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition-all"
+                    />
+                  </div>
+
+                  <div className="flex flex-col gap-3">
+                    <button
+                      onClick={handleSaveApiKey}
+                      disabled={!openaiApiKeyInput.trim()}
+                      className="w-full bg-zinc-800 text-white hover:bg-zinc-700 disabled:opacity-50 disabled:cursor-not-allowed font-medium py-3 px-4 rounded-lg transition-colors"
+                    >
+                      Save OpenAI Key
+                    </button>
+                    
+                    {isOpenaiApiKeySet && (
+                      <button
+                        onClick={handleRemoveApiKey}
+                        className="w-full bg-red-500/10 text-red-400 hover:bg-red-500/20 font-medium py-3 px-4 rounded-lg transition-colors"
+                      >
+                        Remove OpenAI Key
+                      </button>
+                    )}
+                  </div>
+                </>
+              )}
             </div>
           </div>
         )}

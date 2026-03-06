@@ -129,13 +129,10 @@ export interface SocialMetadata {
   hashtags: string[];
 }
 
-export interface ThumbnailConcept {
-  style: string;
+export interface ThumbnailIdeas {
   imagePrompt: string;
   textOverlays: string[];
 }
-
-export type ThumbnailIdeas = ThumbnailConcept[];
 
 export interface HistoryItem {
   id: string;
@@ -145,3 +142,5 @@ export interface HistoryItem {
   thumbnailIdeas: ThumbnailIdeas | null;
   shortScripts: ShortScriptIdea[];
 }
+
+export type AiProvider = 'gemini' | 'openai';
