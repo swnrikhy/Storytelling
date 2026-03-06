@@ -739,8 +739,9 @@ function App() {
     }
   };
   
-  const handleCopyPrompt = (text: string) => {
-    navigator.clipboard.writeText(text);
+  const handleCopyPrompt = () => {
+    if (!thumbnailIdeas) return;
+    navigator.clipboard.writeText(thumbnailIdeas.imagePrompt);
     setPromptCopied(true);
     setTimeout(() => setPromptCopied(false), 2000);
   };
@@ -1429,37 +1430,32 @@ function App() {
                   </div>
 
                   {thumbnailIdeas ? (
-                    <div className="animate-fadeIn mt-2 text-sm space-y-6">
-                       {(Array.isArray(thumbnailIdeas) ? thumbnailIdeas : [thumbnailIdeas]).map((idea, index) => (
-                         <div key={index} className="border-b border-zinc-800 pb-6 last:border-0 last:pb-0">
-                            <div className="flex justify-between items-center mb-3">
-                               <span className="text-xs font-bold text-indigo-400 uppercase tracking-widest">{idea.style || "Concept"}</span>
-                               <button 
-                                  onClick={() => handleCopyPrompt(idea.imagePrompt)}
-                                  className={`text-[10px] px-2 py-1 rounded transition-colors ${promptCopied ? 'bg-green-900/50 text-green-200' : 'bg-zinc-800 text-zinc-400 hover:text-white'}`}
-                               >
-                                  {promptCopied ? t.promptCopied : "Copy"}
-                               </button>
-                            </div>
-                            
-                            <div className="mb-4">
-                               <div className="p-3 bg-zinc-950 rounded border border-zinc-800 text-zinc-400 text-xs leading-relaxed italic line-clamp-3 hover:line-clamp-none transition-all cursor-help">
-                                  {idea.imagePrompt}
-                               </div>
-                            </div>
-                            
-                            <div>
-                               <span className="text-[10px] uppercase text-zinc-500 font-bold block mb-2">Text Overlays</span>
-                               <div className="flex flex-wrap gap-2">
-                                  {idea.textOverlays.map((text, i) => (
-                                     <div key={i} className="px-2 py-1 bg-zinc-800/50 rounded border border-zinc-700/50 text-zinc-300 text-[10px] font-medium text-center shadow-sm">
-                                        "{text}"
-                                     </div>
-                                  ))}
-                               </div>
-                            </div>
-                         </div>
-                       ))}
+                    <div className="animate-fadeIn mt-2 text-sm space-y-5">
+                       <div>
+                          <div className="flex justify-between items-end mb-2">
+                             <span className="text-xs uppercase text-zinc-500 font-bold">Image Prompt</span>
+                             <button 
+                                onClick={handleCopyPrompt}
+                                className={`text-[10px] px-2 py-1 rounded transition-colors ${promptCopied ? 'bg-green-900/50 text-green-200' : 'bg-zinc-800 text-zinc-400 hover:text-white'}`}
+                             >
+                                {promptCopied ? t.promptCopied : "Copy"}
+                             </button>
+                          </div>
+                          <div className="p-3 bg-zinc-950 rounded border border-zinc-800 text-zinc-400 text-xs leading-relaxed italic line-clamp-4 hover:line-clamp-none transition-all cursor-help">
+                             {thumbnailIdeas.imagePrompt}
+                          </div>
+                       </div>
+                       
+                       <div>
+                          <span className="text-xs uppercase text-zinc-500 font-bold block mb-2">Text Overlay Ideas</span>
+                          <div className="flex flex-col gap-2">
+                             {thumbnailIdeas.textOverlays.map((text, i) => (
+                                <div key={i} className="px-3 py-2 bg-zinc-800/50 rounded border border-zinc-700/50 text-zinc-200 font-bold text-center tracking-tight shadow-sm text-xs">
+                                   "{text}"
+                                </div>
+                             ))}
+                          </div>
+                       </div>
                     </div>
                   ) : (
                      <div className="flex-1 flex items-center justify-center text-zinc-600 text-sm py-12 border border-dashed border-zinc-800 rounded">

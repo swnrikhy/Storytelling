@@ -129,13 +129,10 @@ export interface SocialMetadata {
   hashtags: string[];
 }
 
-export interface ThumbnailConcept {
-  style: string;
+export interface ThumbnailIdeas {
   imagePrompt: string;
   textOverlays: string[];
 }
-
-export type ThumbnailIdeas = ThumbnailConcept[];
 
 export interface HistoryItem {
   id: string;

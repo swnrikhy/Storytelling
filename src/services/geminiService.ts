@@ -199,28 +199,17 @@ const shortScriptSchema: Schema = {
 const thumbnailIdeasSchema: Schema = {
   type: Type.OBJECT,
   properties: {
-    concepts: {
-      type: Type.ARRAY,
-      items: {
-        type: Type.OBJECT,
-        properties: {
-          style: { type: Type.STRING, description: "The visual style of the thumbnail (e.g., 'Hyper-Realistic', 'Comic Book', 'Minimalist')." },
-          imagePrompt: { 
-            type: Type.STRING, 
-            description: "A detailed, descriptive prompt for an AI image generator (Midjourney/DALL-E) to create the thumbnail background. MUST be in English." 
-          },
-          textOverlays: { 
-            type: Type.ARRAY, 
-            items: { type: Type.STRING }, 
-            description: "3 short, punchy text phrases (max 5 words) to place on top of the image." 
-          }
-        },
-        required: ["style", "imagePrompt", "textOverlays"]
-      },
-      description: "3 distinct thumbnail concepts with different styles."
+    imagePrompt: { 
+      type: Type.STRING, 
+      description: "A detailed, descriptive prompt for an AI image generator (Midjourney/DALL-E) to create the thumbnail background. MUST be in English." 
+    },
+    textOverlays: { 
+      type: Type.ARRAY, 
+      items: { type: Type.STRING }, 
+      description: "3 short, punchy text phrases (max 5 words) to place on top of the image." 
     }
   },
-  required: ["concepts"]
+  required: ["imagePrompt", "textOverlays"]
 };
 
 const SYSTEM_INSTRUCTION = `
@@ -527,21 +516,15 @@ export const generateThumbnail = async (story: FullStory, language: Language): P
     : "The 'textOverlays' MUST be in English.";
 
   const prompt = `
-    Create 3 distinct YouTube thumbnail concepts for this story, each with a unique visual style.
+    Create a concept for a high-click-through rate (CTR) YouTube thumbnail for this story.
     
     Story Title: ${story.title}
     Theme: ${story.theme}
     Key Visual: ${story.hook.content.substring(0, 150)}...
     
-    Styles to generate:
-    1. Hyper-Realistic / Cinematic (High drama, 8k resolution, movie poster feel)
-    2. Illustrated / Art (Comic book style, vector art, or digital painting)
-    3. Minimalist / Symbolic (Clean, high contrast, focus on a single object or emotion)
-
-    Task for each concept:
-    1. 'style': Name the style.
-    2. 'imagePrompt': Write a highly detailed prompt for an AI image generator (Midjourney/DALL-E). MUST be in English.
-    3. 'textOverlays': Provide 3 options for short, punchy text (2-5 words) to place ON the image.
+    Task:
+    1. 'imagePrompt': Write a highly detailed, descriptive image generation prompt (in English) that I can paste into Midjourney, DALL-E 3, or Stable Diffusion. It should specify lighting, composition (e.g., close-up, wide shot), style (e.g., photorealistic, cinematic, illustrated), and key subjects. It must be dramatic and emotional.
+    2. 'textOverlays': Provide 3 options for short, punchy text to place ON the thumbnail image. These should be 2-5 words max, highly curiosity-inducing.
     
     ${textOverlayInstruction}
   `;
@@ -560,8 +543,7 @@ export const generateThumbnail = async (story: FullStory, language: Language): P
     const text = response.text;
     if (!text) throw new Error("No thumbnail ideas generated");
     
-    const json = JSON.parse(text);
-    return json.concepts as ThumbnailIdeas;
+    return JSON.parse(text) as ThumbnailIdeas;
   } catch (error) {
     console.error("Gemini API Error (Thumbnail Ideas):", error);
     throw error;
