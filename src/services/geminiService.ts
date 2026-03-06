@@ -237,10 +237,10 @@ export const generateStory = async (
   language: Language, 
   framework: FrameworkType,
   additionalInfo?: string, 
-  writingStyle?: string,
-  modelName: string = MODEL_NAME
+  writingStyle?: string
 ): Promise<FullStory> => {
   const ai = getAI();
+  const modelName = MODEL_NAME;
   let lengthInstruction = "";
   switch (duration) {
     case DurationType.SHORT:
@@ -333,8 +333,9 @@ export const generateStory = async (
   }
 };
 
-export const generateHooks = async (topic: string, theme: string, language: Language, modelName: string = MODEL_NAME): Promise<HookIdea[]> => {
+export const generateHooks = async (topic: string, theme: string, language: Language): Promise<HookIdea[]> => {
   const ai = getAI();
+  const modelName = MODEL_NAME;
   const languageInstruction = language === 'id' 
     ? "OUTPUT MUST BE IN INDONESIAN (BAHASA INDONESIA). No translation needed."
     : "OUTPUT MUST BE IN ENGLISH. For each hook, also provide an Indonesian translation in the 'translation' field.";
@@ -371,8 +372,9 @@ export const generateHooks = async (topic: string, theme: string, language: Lang
   }
 };
 
-export const rewriteStory = async (currentStory: FullStory, language: Language, modelName: string = MODEL_NAME): Promise<FullStory> => {
+export const rewriteStory = async (currentStory: FullStory, language: Language): Promise<FullStory> => {
   const ai = getAI();
+  const modelName = MODEL_NAME;
   const languageInstruction = language === 'id' 
     ? "Maintain the story in INDONESIAN (BAHASA INDONESIA)."
     : "Maintain the story in ENGLISH.";
@@ -411,8 +413,9 @@ export const rewriteStory = async (currentStory: FullStory, language: Language, 
   }
 };
 
-export const generateSocialMetadata = async (story: FullStory, language: Language, modelName: string = MODEL_NAME): Promise<SocialMetadata> => {
+export const generateSocialMetadata = async (story: FullStory, language: Language): Promise<SocialMetadata> => {
   const ai = getAI();
+  const modelName = MODEL_NAME;
   const languageInstruction = language === 'id' 
     ? "OUTPUT MUST BE IN INDONESIAN (BAHASA INDONESIA)."
     : "OUTPUT MUST BE IN ENGLISH.";
@@ -454,8 +457,9 @@ export const generateSocialMetadata = async (story: FullStory, language: Languag
   }
 };
 
-export const generateShortScript = async (story: FullStory, language: Language, modelName: string = MODEL_NAME): Promise<ShortScriptIdea[]> => {
+export const generateShortScript = async (story: FullStory, language: Language): Promise<ShortScriptIdea[]> => {
   const ai = getAI();
+  const modelName = MODEL_NAME;
   const languageInstruction = language === 'id' 
     ? "OUTPUT MUST BE IN INDONESIAN (BAHASA INDONESIA)."
     : "OUTPUT MUST BE IN ENGLISH.";
@@ -504,8 +508,9 @@ export const generateShortScript = async (story: FullStory, language: Language, 
   }
 };
 
-export const generateThumbnail = async (story: FullStory, language: Language, modelName: string = MODEL_NAME): Promise<ThumbnailIdeas> => {
+export const generateThumbnail = async (story: FullStory, language: Language): Promise<ThumbnailIdeas> => {
   const ai = getAI();
+  const modelName = MODEL_NAME;
   const textOverlayInstruction = language === 'id'
     ? "The 'textOverlays' MUST be in Indonesian."
     : "The 'textOverlays' MUST be in English.";

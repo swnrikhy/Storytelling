@@ -1,10 +1,5 @@
 export type Language = 'en' | 'id';
 
-export enum ModelType {
-  FLASH = 'gemini-3-flash-preview',
-  PRO = 'gemini-3.1-pro-preview',
-}
-
 export enum ThemeType {
   HORROR = 'Horror',
   ADVENTURE = 'Adventure/Travel',

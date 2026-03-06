@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { ThemeType, FullStory, DurationType, Language, SocialMetadata, ThumbnailIdeas, HookIdea, ShortScriptIdea, FrameworkType, ModelType } from './types';
+import { ThemeType, FullStory, DurationType, Language, SocialMetadata, ThumbnailIdeas, HookIdea, ShortScriptIdea, FrameworkType } from './types';
 import { generateStory, generateHooks, rewriteStory, generateSocialMetadata, generateThumbnail, generateShortScript } from './services/geminiService';
 import { ModuleCard } from './components/ModuleCard';
 
@@ -134,11 +134,6 @@ const translations = {
     noHistory: "No history yet.",
     clearHistory: "Clear History",
     selectFramework: "Content Structure",
-    selectModel: "Gemini Model",
-    models: {
-      [ModelType.FLASH]: "Gemini 3 Flash (Fast)",
-      [ModelType.PRO]: "Gemini 3.1 Pro (Smart)",
-    },
     frameworks: {
       [FrameworkType.NARRATIVE]: "Narrative Arc (Story)",
       [FrameworkType.PAS]: "Problem-Agitate-Solve",
@@ -363,11 +358,6 @@ const translations = {
     noHistory: "Belum ada riwayat.",
     clearHistory: "Hapus Riwayat",
     selectFramework: "Struktur Konten",
-    selectModel: "Model Gemini",
-    models: {
-      [ModelType.FLASH]: "Gemini 3 Flash (Cepat)",
-      [ModelType.PRO]: "Gemini 3.1 Pro (Cerdas)",
-    },
     frameworks: {
       [FrameworkType.NARRATIVE]: "Alur Narasi (Cerita)",
       [FrameworkType.PAS]: "Problem-Agitate-Solve",
@@ -503,7 +493,6 @@ function App() {
   const [selectedTheme, setSelectedTheme] = useState<ThemeType>(ThemeType.HISTORY);
   const [selectedDuration, setSelectedDuration] = useState<DurationType>(DurationType.SHORT);
   const [selectedFramework, setSelectedFramework] = useState<FrameworkType>(FrameworkType.NARRATIVE);
-  const [selectedModel, setSelectedModel] = useState<ModelType>(ModelType.FLASH);
   const [additionalContext, setAdditionalContext] = useState('');
   const [writingStyle, setWritingStyle] = useState('storytelling');
   const [isLoading, setIsLoading] = useState(false);
@@ -658,7 +647,7 @@ function App() {
     setShortScripts([]);
     try {
       const writingStyleLabel = t.writingStyles[writingStyle as keyof typeof t.writingStyles] || writingStyle;
-      const result = await generateStory(selectedTheme, selectedDuration, language, selectedFramework, additionalContext, writingStyleLabel, selectedModel);
+      const result = await generateStory(selectedTheme, selectedDuration, language, selectedFramework, additionalContext, writingStyleLabel);
       setStory(result);
       addToHistory(result);
       setTimeout(() => {
@@ -675,7 +664,7 @@ function App() {
     if (!story) return;
     setIsRewriting(true);
     try {
-      const result = await rewriteStory(story, language, selectedModel);
+      const result = await rewriteStory(story, language);
       setStory(result);
     } catch (error) {
       alert(t.failedRewrite);
@@ -687,7 +676,7 @@ function App() {
   const handleGenerateHooks = async () => {
     setIsGeneratingHooks(true);
     try {
-      const hooks = await generateHooks(additionalContext, selectedTheme, language, selectedModel);
+      const hooks = await generateHooks(additionalContext, selectedTheme, language);
       setGeneratedHooks(hooks);
     } catch (error) {
       alert(t.failedHooks);
@@ -700,7 +689,7 @@ function App() {
     if (!story) return;
     setIsGeneratingMetadata(true);
     try {
-      const metadata = await generateSocialMetadata(story, language, selectedModel);
+      const metadata = await generateSocialMetadata(story, language);
       setSocialMetadata(metadata);
       updateHistoryItem({ socialMetadata: metadata });
       setTimeout(() => {
@@ -718,7 +707,7 @@ function App() {
     if (!story) return;
     setIsGeneratingThumbnail(true);
     try {
-      const ideas = await generateThumbnail(story, language, selectedModel);
+      const ideas = await generateThumbnail(story, language);
       setThumbnailIdeas(ideas);
       updateHistoryItem({ thumbnailIdeas: ideas });
       setTimeout(() => {
@@ -736,7 +725,7 @@ function App() {
     if (!story) return;
     setIsGeneratingShortScript(true);
     try {
-      const scripts = await generateShortScript(story, language, selectedModel);
+      const scripts = await generateShortScript(story, language);
       setShortScripts(scripts);
       updateHistoryItem({ shortScripts: scripts });
       setTimeout(() => {
@@ -959,30 +948,6 @@ function App() {
           <p className="text-base text-zinc-400 max-w-lg mx-auto leading-relaxed">
             {t.heroSubtitle}
           </p>
-        </section>
-
-        {/* Model Selection - Dropdown */}
-        <section className="mb-8">
-          <label className="block text-xs font-medium uppercase tracking-widest text-zinc-500 mb-3 ml-1">
-            {t.selectModel}
-          </label>
-          
-          <div className="relative">
-            <select
-              value={selectedModel}
-              onChange={(e) => setSelectedModel(e.target.value as ModelType)}
-              className="w-full bg-zinc-900 text-zinc-200 border border-zinc-800 rounded-lg px-4 py-3.5 appearance-none focus:ring-1 focus:ring-zinc-600 focus:border-zinc-600 transition-all outline-none text-base font-medium cursor-pointer shadow-sm hover:border-zinc-700"
-            >
-              {Object.values(ModelType).map((model) => (
-                <option key={model} value={model} className="bg-zinc-900 text-zinc-200">
-                  {t.models[model]}
-                </option>
-              ))}
-            </select>
-            <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-4 text-zinc-500">
-              <svg className="fill-current h-4 w-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"><path d="M9.293 12.95l.707.707L15.657 8l-1.414-1.414L10 10.828 5.757 6.586 4.343 8z"/></svg>
-            </div>
-          </div>
         </section>
 
         {/* Theme Selection - Dropdown */}
