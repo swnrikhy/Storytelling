@@ -199,17 +199,28 @@ const shortScriptSchema: Schema = {
 const thumbnailIdeasSchema: Schema = {
   type: Type.OBJECT,
   properties: {
-    imagePrompt: { 
-      type: Type.STRING, 
-      description: "A detailed, descriptive prompt for an AI image generator (Midjourney/DALL-E) to create the thumbnail background. MUST be in English." 
-    },
-    textOverlays: { 
-      type: Type.ARRAY, 
-      items: { type: Type.STRING }, 
-      description: "3 short, punchy text phrases (max 5 words) to place on top of the image." 
+    concepts: {
+      type: Type.ARRAY,
+      items: {
+        type: Type.OBJECT,
+        properties: {
+          style: { type: Type.STRING, description: "The visual style of the thumbnail (e.g., 'Hyper-Realistic', 'Comic Book', 'Minimalist')." },
+          imagePrompt: { 
+            type: Type.STRING, 
+            description: "A detailed, descriptive prompt for an AI image generator (Midjourney/DALL-E) to create the thumbnail background. MUST be in English." 
+          },
+          textOverlays: { 
+            type: Type.ARRAY, 
+            items: { type: Type.STRING }, 
+            description: "3 short, punchy text phrases (max 5 words) to place on top of the image." 
+          }
+        },
+        required: ["style", "imagePrompt", "textOverlays"]
+      },
+      description: "3 distinct thumbnail concepts with different styles."
     }
   },
-  required: ["imagePrompt", "textOverlays"]
+  required: ["concepts"]
 };
 
 const SYSTEM_INSTRUCTION = `
@@ -231,100 +242,16 @@ If requested, adjust drama, suspense, pacing, or emotional intensity.
 
 const MODEL_NAME = "gemini-3-flash-preview";
 
-import { openRouter } from './openRouterService';
-
-async function callAI<T>(
-  model: string, 
-  prompt: string, 
-  systemInstruction: string, 
-  schema: Schema,
-  useThinking: boolean = false
-): Promise<T> {
-  const isGemini = model.includes('gemini') && !model.includes('google/gemini');
-
-  if (isGemini) {
-    const ai = getAI();
-    const config: any = {
-      systemInstruction: systemInstruction,
-      responseMimeType: "application/json",
-      responseSchema: schema,
-    };
-    
-    if (useThinking) {
-      config.thinkingConfig = { thinkingBudget: 0 };
-    }
-
-    try {
-      const response = await ai.models.generateContent({
-        model: model,
-        contents: prompt,
-        config: config
-      });
-
-      const text = response.text;
-      if (!text) throw new Error("No text generated");
-      
-      return JSON.parse(text) as T;
-    } catch (error) {
-      console.error("Gemini API Error:", error);
-      throw error;
-    }
-  } else {
-    try {
-      const completion = await openRouter.chat.send({
-        chatGenerationParams: {
-          model: model,
-          messages: [
-            {
-              role: 'system',
-              content: `${systemInstruction}\n\nIMPORTANT: You must respond with valid JSON matching this schema:\n${JSON.stringify(schema, null, 2)}`
-            },
-            {
-              role: 'user',
-              content: prompt,
-            },
-          ],
-          stream: false,
-        }
-      });
-
-      const content = completion.choices[0].message.content;
-      if (!content) {
-        console.error("OpenRouter Response:", JSON.stringify(completion, null, 2));
-        throw new Error("No content generated from OpenRouter");
-      }
-      
-      let text = typeof content === 'string' ? content : JSON.stringify(content);
-      
-      // Attempt to extract JSON if wrapped in markdown or other text
-      const jsonMatch = text.match(/\{[\s\S]*\}/);
-      if (jsonMatch) {
-        text = jsonMatch[0];
-      }
-
-      return JSON.parse(text) as T;
-    } catch (error: any) {
-      console.error("OpenRouter API Error:", error);
-      
-      // Check for insufficient credits error
-      if (error?.message?.includes("Insufficient credits") || error?.error?.message?.includes("Insufficient credits")) {
-        throw new Error("OpenRouter: Insufficient credits. Please purchase more credits at https://openrouter.ai/credits");
-      }
-      
-      throw error;
-    }
-  }
-}
-
 export const generateStory = async (
   theme: ThemeType, 
   duration: DurationType, 
   language: Language, 
   framework: FrameworkType,
   additionalInfo?: string, 
-  writingStyle?: string,
-  model: string = MODEL_NAME
+  writingStyle?: string
 ): Promise<FullStory> => {
+  const ai = getAI();
+  const modelName = MODEL_NAME;
   let lengthInstruction = "";
   switch (duration) {
     case DurationType.SHORT:
@@ -395,10 +322,31 @@ export const generateStory = async (
     Ensure the content flows naturally from one module to the next to form a cohesive story, even while following the specified framework logic.
   `;
 
-  return callAI<FullStory>(model, prompt, SYSTEM_INSTRUCTION, storySchema, true);
+  try {
+    const response = await ai.models.generateContent({
+      model: modelName,
+      contents: prompt,
+      config: {
+        systemInstruction: SYSTEM_INSTRUCTION,
+        responseMimeType: "application/json",
+        responseSchema: storySchema,
+        thinkingConfig: { thinkingBudget: 0 } 
+      }
+    });
+
+    const text = response.text;
+    if (!text) throw new Error("No text generated");
+    
+    return JSON.parse(text) as FullStory;
+  } catch (error) {
+    console.error("Gemini API Error:", error);
+    throw error;
+  }
 };
 
-export const generateHooks = async (topic: string, theme: string, language: Language, model: string = MODEL_NAME): Promise<HookIdea[]> => {
+export const generateHooks = async (topic: string, theme: string, language: Language): Promise<HookIdea[]> => {
+  const ai = getAI();
+  const modelName = MODEL_NAME;
   const languageInstruction = language === 'id' 
     ? "OUTPUT MUST BE IN INDONESIAN (BAHASA INDONESIA). No translation needed."
     : "OUTPUT MUST BE IN ENGLISH. For each hook, also provide an Indonesian translation in the 'translation' field.";
@@ -414,10 +362,30 @@ export const generateHooks = async (topic: string, theme: string, language: Lang
     Return a JSON array of objects with 'text' and 'translation' fields.
   `;
 
-  return callAI<HookIdea[]>(model, prompt, SYSTEM_INSTRUCTION, hooksSchema);
+  try {
+    const response = await ai.models.generateContent({
+      model: modelName,
+      contents: prompt,
+      config: {
+        systemInstruction: SYSTEM_INSTRUCTION,
+        responseMimeType: "application/json",
+        responseSchema: hooksSchema,
+      }
+    });
+
+    const text = response.text;
+    if (!text) throw new Error("No text generated");
+
+    return JSON.parse(text) as HookIdea[];
+  } catch (error) {
+    console.error("Gemini API Error (Hooks):", error);
+    throw error;
+  }
 };
 
-export const rewriteStory = async (currentStory: FullStory, language: Language, model: string = MODEL_NAME): Promise<FullStory> => {
+export const rewriteStory = async (currentStory: FullStory, language: Language): Promise<FullStory> => {
+  const ai = getAI();
+  const modelName = MODEL_NAME;
   const languageInstruction = language === 'id' 
     ? "Maintain the story in INDONESIAN (BAHASA INDONESIA)."
     : "Maintain the story in ENGLISH.";
@@ -434,10 +402,31 @@ export const rewriteStory = async (currentStory: FullStory, language: Language, 
     ${JSON.stringify(currentStory)}
   `;
 
-  return callAI<FullStory>(model, prompt, SYSTEM_INSTRUCTION, storySchema, true);
+  try {
+    const response = await ai.models.generateContent({
+      model: modelName,
+      contents: prompt,
+      config: {
+        systemInstruction: SYSTEM_INSTRUCTION,
+        responseMimeType: "application/json",
+        responseSchema: storySchema,
+        thinkingConfig: { thinkingBudget: 0 } 
+      }
+    });
+
+    const text = response.text;
+    if (!text) throw new Error("No text generated");
+    
+    return JSON.parse(text) as FullStory;
+  } catch (error) {
+    console.error("Gemini API Error (Rewrite):", error);
+    throw error;
+  }
 };
 
-export const generateSocialMetadata = async (story: FullStory, language: Language, model: string = MODEL_NAME): Promise<SocialMetadata> => {
+export const generateSocialMetadata = async (story: FullStory, language: Language): Promise<SocialMetadata> => {
+  const ai = getAI();
+  const modelName = MODEL_NAME;
   const languageInstruction = language === 'id' 
     ? "OUTPUT MUST BE IN INDONESIAN (BAHASA INDONESIA)."
     : "OUTPUT MUST BE IN ENGLISH.";
@@ -458,10 +447,30 @@ export const generateSocialMetadata = async (story: FullStory, language: Languag
     ${languageInstruction}
   `;
 
-  return callAI<SocialMetadata>(model, prompt, "You are a Social Media Manager expert in SEO and Virality.", socialMetadataSchema);
+  try {
+    const response = await ai.models.generateContent({
+      model: modelName,
+      contents: prompt,
+      config: {
+        systemInstruction: "You are a Social Media Manager expert in SEO and Virality.",
+        responseMimeType: "application/json",
+        responseSchema: socialMetadataSchema,
+      }
+    });
+
+    const text = response.text;
+    if (!text) throw new Error("No metadata generated");
+    
+    return JSON.parse(text) as SocialMetadata;
+  } catch (error) {
+    console.error("Gemini API Error (Social Metadata):", error);
+    throw error;
+  }
 };
 
-export const generateShortScript = async (story: FullStory, language: Language, model: string = MODEL_NAME): Promise<ShortScriptIdea[]> => {
+export const generateShortScript = async (story: FullStory, language: Language): Promise<ShortScriptIdea[]> => {
+  const ai = getAI();
+  const modelName = MODEL_NAME;
   const languageInstruction = language === 'id' 
     ? "OUTPUT MUST BE IN INDONESIAN (BAHASA INDONESIA)."
     : "OUTPUT MUST BE IN ENGLISH.";
@@ -488,69 +497,73 @@ export const generateShortScript = async (story: FullStory, language: Language, 
     ${languageInstruction}
   `;
 
-  const result = await callAI<{ scripts: ShortScriptIdea[] }>(
-    model, 
-    prompt, 
-    "You are a Viral Video Scriptwriter. You know how to keep people watching with punchy, narrative-only scripts.", 
-    shortScriptSchema
-  );
-  return result.scripts;
+  try {
+    const response = await ai.models.generateContent({
+      model: modelName,
+      contents: prompt,
+      config: {
+        systemInstruction: "You are a Viral Video Scriptwriter. You know how to keep people watching with punchy, narrative-only scripts.",
+        responseMimeType: "application/json",
+        responseSchema: shortScriptSchema,
+      }
+    });
+
+    const text = response.text;
+    if (!text) throw new Error("No scripts generated");
+    
+    const json = JSON.parse(text);
+    return json.scripts as ShortScriptIdea[];
+  } catch (error) {
+    console.error("Gemini API Error (Short Script):", error);
+    throw error;
+  }
 };
 
-export const generateThumbnail = async (story: FullStory, language: Language, model: string = MODEL_NAME): Promise<ThumbnailIdeas> => {
+export const generateThumbnail = async (story: FullStory, language: Language): Promise<ThumbnailIdeas> => {
+  const ai = getAI();
+  const modelName = MODEL_NAME;
   const textOverlayInstruction = language === 'id'
     ? "The 'textOverlays' MUST be in Indonesian."
     : "The 'textOverlays' MUST be in English.";
 
   const prompt = `
-    Create a concept for a high-click-through rate (CTR) YouTube thumbnail for this story.
+    Create 3 distinct YouTube thumbnail concepts for this story, each with a unique visual style.
     
     Story Title: ${story.title}
     Theme: ${story.theme}
     Key Visual: ${story.hook.content.substring(0, 150)}...
     
-    Task:
-    1. 'imagePrompt': Write a highly detailed, descriptive image generation prompt (in English) that I can paste into Midjourney, DALL-E 3, or Stable Diffusion. It should specify lighting, composition (e.g., close-up, wide shot), style (e.g., photorealistic, cinematic, illustrated), and key subjects. It must be dramatic and emotional.
-    2. 'textOverlays': Provide 3 options for short, punchy text to place ON the thumbnail image. These should be 2-5 words max, highly curiosity-inducing.
+    Styles to generate:
+    1. Hyper-Realistic / Cinematic (High drama, 8k resolution, movie poster feel)
+    2. Illustrated / Art (Comic book style, vector art, or digital painting)
+    3. Minimalist / Symbolic (Clean, high contrast, focus on a single object or emotion)
+
+    Task for each concept:
+    1. 'style': Name the style.
+    2. 'imagePrompt': Write a highly detailed prompt for an AI image generator (Midjourney/DALL-E). MUST be in English.
+    3. 'textOverlays': Provide 3 options for short, punchy text (2-5 words) to place ON the image.
     
     ${textOverlayInstruction}
   `;
 
-  return callAI<ThumbnailIdeas>(model, prompt, "You are a YouTube Thumbnail expert. You know what makes people click.", thumbnailIdeasSchema);
-};
-
-export const generateImage = async (prompt: string, model: string): Promise<string> => {
   try {
-    const completion = await openRouter.chat.send({
-      chatGenerationParams: {
-        model: model,
-        messages: [
-          {
-            role: 'user',
-            content: prompt,
-          },
-        ],
-        // @ts-ignore - modalities is not yet in the types but supported by the API
-        modalities: ["image"],
-      }
+    const response = await ai.models.generateContent({
+        model: modelName,
+        contents: prompt,
+        config: {
+          systemInstruction: "You are a YouTube Thumbnail expert. You know what makes people click.",
+          responseMimeType: "application/json",
+          responseSchema: thumbnailIdeasSchema,
+        },
     });
 
-    const message = completion.choices[0].message;
-    // @ts-ignore - images property might not be in the types yet
-    if (message.images && message.images.length > 0) {
-      // @ts-ignore
-      return message.images[0].image_url.url;
-    }
+    const text = response.text;
+    if (!text) throw new Error("No thumbnail ideas generated");
     
-    throw new Error("No image generated");
-  } catch (error: any) {
-    console.error("OpenRouter Image Generation Error:", error);
-    
-    // Check for insufficient credits error
-    if (error?.message?.includes("Insufficient credits") || error?.error?.message?.includes("Insufficient credits")) {
-      throw new Error("OpenRouter: Insufficient credits. Please purchase more credits at https://openrouter.ai/credits");
-    }
-    
+    const json = JSON.parse(text);
+    return json.concepts as ThumbnailIdeas;
+  } catch (error) {
+    console.error("Gemini API Error (Thumbnail Ideas):", error);
     throw error;
   }
 };
