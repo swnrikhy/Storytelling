@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { ThemeType, FullStory, DurationType, Language, SocialMetadata, ThumbnailIdeas, HookIdea, ShortScriptIdea, FrameworkType } from './types';
+import { ThemeType, FullStory, DurationType, Language, SocialMetadata, ThumbnailIdeas, HookIdea, ShortScriptIdea, FrameworkType, ModelType } from './types';
 import { generateStory, generateHooks, rewriteStory, generateSocialMetadata, generateThumbnail, generateShortScript } from './services/geminiService';
 import { ModuleCard } from './components/ModuleCard';
 
@@ -54,6 +54,9 @@ const translations = {
     failedStory: "Failed to generate story. Please try again.",
     failedRewrite: "Failed to rewrite story. Please try again.",
     intensifyDrama: "Intensify Drama",
+    selectApiKey: "Select Gemini API Key",
+    apiKeyDescription: "To use Narrative Nexus with dynamic keys, please select your Google Gemini API key from the platform.",
+    getApiKey: "Select Key",
     copyAll: "Copy All",
     copySuccess: "Story copied to clipboard!",
     readAloud: "Read Aloud",
@@ -125,6 +128,11 @@ const translations = {
     noHistory: "No history yet.",
     clearHistory: "Clear History",
     selectFramework: "Content Structure",
+    selectModel: "Gemini Model",
+    models: {
+      [ModelType.FLASH]: "Gemini 3 Flash (Fast)",
+      [ModelType.PRO]: "Gemini 3.1 Pro (Smart)",
+    },
     frameworks: {
       [FrameworkType.NARRATIVE]: "Narrative Arc (Story)",
       [FrameworkType.PAS]: "Problem-Agitate-Solve",
@@ -271,6 +279,9 @@ const translations = {
     failedStory: "Gagal membuat cerita. Silakan coba lagi.",
     failedRewrite: "Gagal menulis ulang cerita. Silakan coba lagi.",
     intensifyDrama: "Tingkatkan Drama",
+    selectApiKey: "Pilih API Key Gemini",
+    apiKeyDescription: "Untuk menggunakan Narrative Nexus dengan key dinamis, silakan pilih API key Google Gemini Anda melalui platform.",
+    getApiKey: "Pilih Key",
     copyAll: "Salin Semua",
     copySuccess: "Cerita berhasil disalin!",
     readAloud: "Baca Cerita",
@@ -342,6 +353,11 @@ const translations = {
     noHistory: "Belum ada riwayat.",
     clearHistory: "Hapus Riwayat",
     selectFramework: "Struktur Konten",
+    selectModel: "Model Gemini",
+    models: {
+      [ModelType.FLASH]: "Gemini 3 Flash (Cepat)",
+      [ModelType.PRO]: "Gemini 3.1 Pro (Cerdas)",
+    },
     frameworks: {
       [FrameworkType.NARRATIVE]: "Alur Narasi (Cerita)",
       [FrameworkType.PAS]: "Problem-Agitate-Solve",
@@ -477,6 +493,7 @@ function App() {
   const [selectedTheme, setSelectedTheme] = useState<ThemeType>(ThemeType.HISTORY);
   const [selectedDuration, setSelectedDuration] = useState<DurationType>(DurationType.SHORT);
   const [selectedFramework, setSelectedFramework] = useState<FrameworkType>(FrameworkType.NARRATIVE);
+  const [selectedModel, setSelectedModel] = useState<ModelType>(ModelType.FLASH);
   const [additionalContext, setAdditionalContext] = useState('');
   const [writingStyle, setWritingStyle] = useState('storytelling');
   const [isLoading, setIsLoading] = useState(false);
@@ -499,7 +516,6 @@ function App() {
   // BYOK State
   const [isApiKeySet, setIsApiKeySet] = useState<boolean>(true); // Default true to prevent flash
   const [showApiKeyModal, setShowApiKeyModal] = useState(false);
-  const [apiKeyInput, setApiKeyInput] = useState('');
   
   // Refs
   const resultRef = useRef<HTMLDivElement>(null);
@@ -511,13 +527,20 @@ function App() {
 
   // Check API Key on mount
   useEffect(() => {
-    const key = localStorage.getItem('gemini_api_key');
-    if (!key) {
-      setIsApiKeySet(false);
-      setShowApiKeyModal(true);
-    } else {
-      setIsApiKeySet(true);
-    }
+    const checkKey = async () => {
+      const aistudio = (window as any).aistudio;
+      if (aistudio && typeof aistudio.hasSelectedApiKey === 'function') {
+        const hasKey = await aistudio.hasSelectedApiKey();
+        setIsApiKeySet(hasKey);
+        if (!hasKey) {
+          setShowApiKeyModal(true);
+        }
+      } else {
+        setIsApiKeySet(true); // Assume set in local dev via .env
+      }
+    };
+    
+    checkKey();
 
     // Load history
     const savedHistory = localStorage.getItem('narrative_history');
@@ -568,19 +591,13 @@ function App() {
     }, 100);
   };
 
-  const handleSaveApiKey = () => {
-    if (apiKeyInput.trim()) {
-      localStorage.setItem('gemini_api_key', apiKeyInput.trim());
+  const handleOpenSelectKey = async () => {
+    const aistudio = (window as any).aistudio;
+    if (aistudio && typeof aistudio.openSelectKey === 'function') {
+      await aistudio.openSelectKey();
       setIsApiKeySet(true);
       setShowApiKeyModal(false);
-      setApiKeyInput('');
     }
-  };
-
-  const handleRemoveApiKey = () => {
-    localStorage.removeItem('gemini_api_key');
-    setIsApiKeySet(false);
-    setApiKeyInput('');
   };
 
   const handleOpenApiKeyModal = () => {
@@ -602,7 +619,7 @@ function App() {
     setShortScripts([]);
     try {
       const writingStyleLabel = t.writingStyles[writingStyle as keyof typeof t.writingStyles] || writingStyle;
-      const result = await generateStory(selectedTheme, selectedDuration, language, selectedFramework, additionalContext, writingStyleLabel);
+      const result = await generateStory(selectedTheme, selectedDuration, language, selectedFramework, additionalContext, writingStyleLabel, selectedModel);
       setStory(result);
       addToHistory(result);
       setTimeout(() => {
@@ -619,7 +636,7 @@ function App() {
     if (!story) return;
     setIsRewriting(true);
     try {
-      const result = await rewriteStory(story, language);
+      const result = await rewriteStory(story, language, selectedModel);
       setStory(result);
     } catch (error) {
       alert(t.failedRewrite);
@@ -631,7 +648,7 @@ function App() {
   const handleGenerateHooks = async () => {
     setIsGeneratingHooks(true);
     try {
-      const hooks = await generateHooks(additionalContext, selectedTheme, language);
+      const hooks = await generateHooks(additionalContext, selectedTheme, language, selectedModel);
       setGeneratedHooks(hooks);
     } catch (error) {
       alert(t.failedHooks);
@@ -644,7 +661,7 @@ function App() {
     if (!story) return;
     setIsGeneratingMetadata(true);
     try {
-      const metadata = await generateSocialMetadata(story, language);
+      const metadata = await generateSocialMetadata(story, language, selectedModel);
       setSocialMetadata(metadata);
       updateHistoryItem({ socialMetadata: metadata });
       setTimeout(() => {
@@ -662,7 +679,7 @@ function App() {
     if (!story) return;
     setIsGeneratingThumbnail(true);
     try {
-      const ideas = await generateThumbnail(story, language);
+      const ideas = await generateThumbnail(story, language, selectedModel);
       setThumbnailIdeas(ideas);
       updateHistoryItem({ thumbnailIdeas: ideas });
       setTimeout(() => {
@@ -680,7 +697,7 @@ function App() {
     if (!story) return;
     setIsGeneratingShortScript(true);
     try {
-      const scripts = await generateShortScript(story, language);
+      const scripts = await generateShortScript(story, language, selectedModel);
       setShortScripts(scripts);
       updateHistoryItem({ shortScripts: scripts });
       setTimeout(() => {
@@ -901,6 +918,30 @@ function App() {
           <p className="text-base text-zinc-400 max-w-lg mx-auto leading-relaxed">
             {t.heroSubtitle}
           </p>
+        </section>
+
+        {/* Model Selection - Dropdown */}
+        <section className="mb-8">
+          <label className="block text-xs font-medium uppercase tracking-widest text-zinc-500 mb-3 ml-1">
+            {t.selectModel}
+          </label>
+          
+          <div className="relative">
+            <select
+              value={selectedModel}
+              onChange={(e) => setSelectedModel(e.target.value as ModelType)}
+              className="w-full bg-zinc-900 text-zinc-200 border border-zinc-800 rounded-lg px-4 py-3.5 appearance-none focus:ring-1 focus:ring-zinc-600 focus:border-zinc-600 transition-all outline-none text-base font-medium cursor-pointer shadow-sm hover:border-zinc-700"
+            >
+              {Object.values(ModelType).map((model) => (
+                <option key={model} value={model} className="bg-zinc-900 text-zinc-200">
+                  {t.models[model]}
+                </option>
+              ))}
+            </select>
+            <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-4 text-zinc-500">
+              <svg className="fill-current h-4 w-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"><path d="M9.293 12.95l.707.707L15.657 8l-1.414-1.414L10 10.828 5.757 6.586 4.343 8z"/></svg>
+            </div>
+          </div>
         </section>
 
         {/* Theme Selection - Dropdown */}
@@ -1449,42 +1490,21 @@ function App() {
                 <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M21 2l-2 2m-7.61 7.61a5.5 5.5 0 1 1-7.778 7.778 5.5 5.5 0 0 1 7.777-7.777zm0 0L15.5 7.5m0 0l3 3L22 7l-3-3m-3.5 3.5L19 4"></path></svg>
               </div>
               <h2 className="text-2xl font-bold text-white mb-3">
-                {isApiKeySet ? 'Manage API Key' : 'API Key Required'}
+                {t.selectApiKey}
               </h2>
               <p className="text-zinc-400 mb-6 leading-relaxed text-sm">
-                To use Narrative Nexus, enter your Google Gemini API key. 
+                {t.apiKeyDescription}
                 <br/>
-                <span className="text-xs opacity-70 mt-2 block">Your key is stored locally in your browser and is never sent to our servers.</span>
-                <a href="https://aistudio.google.com/app/apikey" target="_blank" rel="noreferrer" className="text-indigo-400 hover:underline mt-2 inline-block">Get your free API key here</a>.
+                <a href="https://ai.google.dev/gemini-api/docs/billing" target="_blank" rel="noreferrer" className="text-indigo-400 hover:underline mt-2 inline-block">Learn about billing</a>.
               </p>
               
-              <div className="text-left mb-6">
-                <input
-                  type="password"
-                  placeholder="AIzaSy..."
-                  value={apiKeyInput}
-                  onChange={(e) => setApiKeyInput(e.target.value)}
-                  className="w-full bg-zinc-950 border border-zinc-700 rounded-lg px-4 py-3 text-zinc-200 focus:ring-1 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition-all"
-                />
-              </div>
-
               <div className="flex flex-col gap-3">
                 <button
-                  onClick={handleSaveApiKey}
-                  disabled={!apiKeyInput.trim()}
+                  onClick={handleOpenSelectKey}
                   className="w-full bg-white text-black hover:bg-zinc-200 disabled:opacity-50 disabled:cursor-not-allowed font-medium py-3 px-4 rounded-lg transition-colors"
                 >
-                  Save API Key
+                  {t.getApiKey}
                 </button>
-                
-                {isApiKeySet && (
-                  <button
-                    onClick={handleRemoveApiKey}
-                    className="w-full bg-red-500/10 text-red-400 hover:bg-red-500/20 font-medium py-3 px-4 rounded-lg transition-colors"
-                  >
-                    Remove Current Key
-                  </button>
-                )}
               </div>
             </div>
           </div>

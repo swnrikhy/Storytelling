@@ -1,8 +1,10 @@
 import { GoogleGenAI, Type, Schema } from "@google/genai";
 import { ThemeType, FullStory, DurationType, Language, SocialMetadata, ThumbnailIdeas, HookIdea, ShortScriptIdea, FrameworkType } from '../types';
 
-const apiKey = process.env.GEMINI_API_KEY;
-const ai = new GoogleGenAI({ apiKey: apiKey });
+const getAI = () => {
+  const key = process.env.API_KEY || process.env.GEMINI_API_KEY;
+  return new GoogleGenAI({ apiKey: key });
+};
 
 const storySchema: Schema = {
   type: Type.OBJECT,
@@ -234,8 +236,10 @@ export const generateStory = async (
   language: Language, 
   framework: FrameworkType,
   additionalInfo?: string, 
-  writingStyle?: string
+  writingStyle?: string,
+  modelName: string = MODEL_NAME
 ): Promise<FullStory> => {
+  const ai = getAI();
   let lengthInstruction = "";
   switch (duration) {
     case DurationType.SHORT:
@@ -308,7 +312,7 @@ export const generateStory = async (
 
   try {
     const response = await ai.models.generateContent({
-      model: MODEL_NAME,
+      model: modelName,
       contents: prompt,
       config: {
         systemInstruction: SYSTEM_INSTRUCTION,
@@ -328,7 +332,8 @@ export const generateStory = async (
   }
 };
 
-export const generateHooks = async (topic: string, theme: string, language: Language): Promise<HookIdea[]> => {
+export const generateHooks = async (topic: string, theme: string, language: Language, modelName: string = MODEL_NAME): Promise<HookIdea[]> => {
+  const ai = getAI();
   const languageInstruction = language === 'id' 
     ? "OUTPUT MUST BE IN INDONESIAN (BAHASA INDONESIA). No translation needed."
     : "OUTPUT MUST BE IN ENGLISH. For each hook, also provide an Indonesian translation in the 'translation' field.";
@@ -346,7 +351,7 @@ export const generateHooks = async (topic: string, theme: string, language: Lang
 
   try {
     const response = await ai.models.generateContent({
-      model: MODEL_NAME,
+      model: modelName,
       contents: prompt,
       config: {
         systemInstruction: SYSTEM_INSTRUCTION,
@@ -365,7 +370,8 @@ export const generateHooks = async (topic: string, theme: string, language: Lang
   }
 };
 
-export const rewriteStory = async (currentStory: FullStory, language: Language): Promise<FullStory> => {
+export const rewriteStory = async (currentStory: FullStory, language: Language, modelName: string = MODEL_NAME): Promise<FullStory> => {
+  const ai = getAI();
   const languageInstruction = language === 'id' 
     ? "Maintain the story in INDONESIAN (BAHASA INDONESIA)."
     : "Maintain the story in ENGLISH.";
@@ -384,7 +390,7 @@ export const rewriteStory = async (currentStory: FullStory, language: Language):
 
   try {
     const response = await ai.models.generateContent({
-      model: MODEL_NAME,
+      model: modelName,
       contents: prompt,
       config: {
         systemInstruction: SYSTEM_INSTRUCTION,
@@ -404,7 +410,8 @@ export const rewriteStory = async (currentStory: FullStory, language: Language):
   }
 };
 
-export const generateSocialMetadata = async (story: FullStory, language: Language): Promise<SocialMetadata> => {
+export const generateSocialMetadata = async (story: FullStory, language: Language, modelName: string = MODEL_NAME): Promise<SocialMetadata> => {
+  const ai = getAI();
   const languageInstruction = language === 'id' 
     ? "OUTPUT MUST BE IN INDONESIAN (BAHASA INDONESIA)."
     : "OUTPUT MUST BE IN ENGLISH.";
@@ -427,7 +434,7 @@ export const generateSocialMetadata = async (story: FullStory, language: Languag
 
   try {
     const response = await ai.models.generateContent({
-      model: MODEL_NAME,
+      model: modelName,
       contents: prompt,
       config: {
         systemInstruction: "You are a Social Media Manager expert in SEO and Virality.",
@@ -446,7 +453,8 @@ export const generateSocialMetadata = async (story: FullStory, language: Languag
   }
 };
 
-export const generateShortScript = async (story: FullStory, language: Language): Promise<ShortScriptIdea[]> => {
+export const generateShortScript = async (story: FullStory, language: Language, modelName: string = MODEL_NAME): Promise<ShortScriptIdea[]> => {
+  const ai = getAI();
   const languageInstruction = language === 'id' 
     ? "OUTPUT MUST BE IN INDONESIAN (BAHASA INDONESIA)."
     : "OUTPUT MUST BE IN ENGLISH.";
@@ -475,7 +483,7 @@ export const generateShortScript = async (story: FullStory, language: Language):
 
   try {
     const response = await ai.models.generateContent({
-      model: MODEL_NAME,
+      model: modelName,
       contents: prompt,
       config: {
         systemInstruction: "You are a Viral Video Scriptwriter. You know how to keep people watching with punchy, narrative-only scripts.",
@@ -495,7 +503,8 @@ export const generateShortScript = async (story: FullStory, language: Language):
   }
 };
 
-export const generateThumbnail = async (story: FullStory, language: Language): Promise<ThumbnailIdeas> => {
+export const generateThumbnail = async (story: FullStory, language: Language, modelName: string = MODEL_NAME): Promise<ThumbnailIdeas> => {
+  const ai = getAI();
   const textOverlayInstruction = language === 'id'
     ? "The 'textOverlays' MUST be in Indonesian."
     : "The 'textOverlays' MUST be in English.";
@@ -516,7 +525,7 @@ export const generateThumbnail = async (story: FullStory, language: Language): P
 
   try {
     const response = await ai.models.generateContent({
-        model: MODEL_NAME,
+        model: modelName,
         contents: prompt,
         config: {
           systemInstruction: "You are a YouTube Thumbnail expert. You know what makes people click.",
