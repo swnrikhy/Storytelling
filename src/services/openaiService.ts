@@ -12,7 +12,7 @@ const getOpenAI = () => {
   return new OpenAI({ apiKey: key, dangerouslyAllowBrowser: true });
 };
 
-const MODEL_NAME = "gpt-4o";
+const MODEL_NAME = "gpt-4o-mini";
 
 const SYSTEM_INSTRUCTION = `
 You are an expert storytelling engine specialized in creating highly engaging video scripts.

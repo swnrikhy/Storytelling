@@ -1607,7 +1607,7 @@ function App() {
                   onClick={() => setAiProvider('openai')}
                   className={`flex-1 py-2 rounded-md text-sm font-medium transition-all ${aiProvider === 'openai' ? 'bg-zinc-800 text-white shadow-sm' : 'text-zinc-500 hover:text-zinc-300'}`}
                 >
-                  OpenAI (GPT-4o)
+                  OpenAI (GPT-4o-mini)
                 </button>
               </div>
 
