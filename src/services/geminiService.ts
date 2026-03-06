@@ -1,9 +1,6 @@
 import { GoogleGenAI, Type, Schema } from "@google/genai";
 import { ThemeType, FullStory, DurationType, Language, SocialMetadata, ThumbnailIdeas, HookIdea, ShortScriptIdea, FrameworkType } from '../types';
 
-const apiKey = process.env.GEMINI_API_KEY;
-const ai = new GoogleGenAI({ apiKey: apiKey });
-
 const storySchema: Schema = {
   type: Type.OBJECT,
   properties: {
@@ -229,6 +226,7 @@ If requested, adjust drama, suspense, pacing, or emotional intensity.
 const MODEL_NAME = "gemini-3-flash-preview";
 
 export const generateStory = async (
+  apiKey: string,
   theme: ThemeType, 
   duration: DurationType, 
   language: Language, 
@@ -236,6 +234,7 @@ export const generateStory = async (
   additionalInfo?: string, 
   writingStyle?: string
 ): Promise<FullStory> => {
+  const ai = new GoogleGenAI({ apiKey });
   let lengthInstruction = "";
   switch (duration) {
     case DurationType.SHORT:
@@ -328,7 +327,8 @@ export const generateStory = async (
   }
 };
 
-export const generateHooks = async (topic: string, theme: string, language: Language): Promise<HookIdea[]> => {
+export const generateHooks = async (apiKey: string, topic: string, theme: string, language: Language): Promise<HookIdea[]> => {
+  const ai = new GoogleGenAI({ apiKey });
   const languageInstruction = language === 'id' 
     ? "OUTPUT MUST BE IN INDONESIAN (BAHASA INDONESIA). No translation needed."
     : "OUTPUT MUST BE IN ENGLISH. For each hook, also provide an Indonesian translation in the 'translation' field.";
@@ -365,7 +365,8 @@ export const generateHooks = async (topic: string, theme: string, language: Lang
   }
 };
 
-export const rewriteStory = async (currentStory: FullStory, language: Language): Promise<FullStory> => {
+export const rewriteStory = async (apiKey: string, currentStory: FullStory, language: Language): Promise<FullStory> => {
+  const ai = new GoogleGenAI({ apiKey });
   const languageInstruction = language === 'id' 
     ? "Maintain the story in INDONESIAN (BAHASA INDONESIA)."
     : "Maintain the story in ENGLISH.";
@@ -404,7 +405,8 @@ export const rewriteStory = async (currentStory: FullStory, language: Language):
   }
 };
 
-export const generateSocialMetadata = async (story: FullStory, language: Language): Promise<SocialMetadata> => {
+export const generateSocialMetadata = async (apiKey: string, story: FullStory, language: Language): Promise<SocialMetadata> => {
+  const ai = new GoogleGenAI({ apiKey });
   const languageInstruction = language === 'id' 
     ? "OUTPUT MUST BE IN INDONESIAN (BAHASA INDONESIA)."
     : "OUTPUT MUST BE IN ENGLISH.";
@@ -446,7 +448,8 @@ export const generateSocialMetadata = async (story: FullStory, language: Languag
   }
 };
 
-export const generateShortScript = async (story: FullStory, language: Language): Promise<ShortScriptIdea[]> => {
+export const generateShortScript = async (apiKey: string, story: FullStory, language: Language): Promise<ShortScriptIdea[]> => {
+  const ai = new GoogleGenAI({ apiKey });
   const languageInstruction = language === 'id' 
     ? "OUTPUT MUST BE IN INDONESIAN (BAHASA INDONESIA)."
     : "OUTPUT MUST BE IN ENGLISH.";
@@ -495,7 +498,8 @@ export const generateShortScript = async (story: FullStory, language: Language):
   }
 };
 
-export const generateThumbnail = async (story: FullStory, language: Language): Promise<ThumbnailIdeas> => {
+export const generateThumbnail = async (apiKey: string, story: FullStory, language: Language): Promise<ThumbnailIdeas> => {
+  const ai = new GoogleGenAI({ apiKey });
   const textOverlayInstruction = language === 'id'
     ? "The 'textOverlays' MUST be in Indonesian."
     : "The 'textOverlays' MUST be in English.";

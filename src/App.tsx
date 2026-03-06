@@ -605,6 +605,12 @@ function App() {
   }, []);
 
   const handleGenerate = async () => {
+    const apiKey = localStorage.getItem('gemini_api_key');
+    if (!apiKey) {
+      setShowApiKeyModal(true);
+      return;
+    }
+
     setIsLoading(true);
     setStory(null);
     setSocialMetadata(null);
@@ -612,7 +618,7 @@ function App() {
     setShortScripts([]);
     try {
       const writingStyleLabel = t.writingStyles[writingStyle as keyof typeof t.writingStyles] || writingStyle;
-      const result = await generateStory(selectedTheme, selectedDuration, language, selectedFramework, additionalContext, writingStyleLabel);
+      const result = await generateStory(apiKey, selectedTheme, selectedDuration, language, selectedFramework, additionalContext, writingStyleLabel);
       setStory(result);
       addToHistory(result);
       setTimeout(() => {
@@ -627,9 +633,15 @@ function App() {
 
   const handleRewrite = async () => {
     if (!story) return;
+    const apiKey = localStorage.getItem('gemini_api_key');
+    if (!apiKey) {
+      setShowApiKeyModal(true);
+      return;
+    }
+
     setIsRewriting(true);
     try {
-      const result = await rewriteStory(story, language);
+      const result = await rewriteStory(apiKey, story, language);
       setStory(result);
     } catch (error) {
       alert(t.failedRewrite);
@@ -639,9 +651,15 @@ function App() {
   };
 
   const handleGenerateHooks = async () => {
+    const apiKey = localStorage.getItem('gemini_api_key');
+    if (!apiKey) {
+      setShowApiKeyModal(true);
+      return;
+    }
+
     setIsGeneratingHooks(true);
     try {
-      const hooks = await generateHooks(additionalContext, selectedTheme, language);
+      const hooks = await generateHooks(apiKey, additionalContext, selectedTheme, language);
       setGeneratedHooks(hooks);
     } catch (error) {
       alert(t.failedHooks);
@@ -652,9 +670,15 @@ function App() {
 
   const handleGenerateMetadata = async () => {
     if (!story) return;
+    const apiKey = localStorage.getItem('gemini_api_key');
+    if (!apiKey) {
+      setShowApiKeyModal(true);
+      return;
+    }
+
     setIsGeneratingMetadata(true);
     try {
-      const metadata = await generateSocialMetadata(story, language);
+      const metadata = await generateSocialMetadata(apiKey, story, language);
       setSocialMetadata(metadata);
       updateHistoryItem({ socialMetadata: metadata });
       setTimeout(() => {
@@ -670,9 +694,15 @@ function App() {
 
   const handleGenerateThumbnail = async () => {
     if (!story) return;
+    const apiKey = localStorage.getItem('gemini_api_key');
+    if (!apiKey) {
+      setShowApiKeyModal(true);
+      return;
+    }
+
     setIsGeneratingThumbnail(true);
     try {
-      const ideas = await generateThumbnail(story, language);
+      const ideas = await generateThumbnail(apiKey, story, language);
       setThumbnailIdeas(ideas);
       updateHistoryItem({ thumbnailIdeas: ideas });
       setTimeout(() => {
@@ -688,9 +718,15 @@ function App() {
 
   const handleGenerateShortScript = async () => {
     if (!story) return;
+    const apiKey = localStorage.getItem('gemini_api_key');
+    if (!apiKey) {
+      setShowApiKeyModal(true);
+      return;
+    }
+
     setIsGeneratingShortScript(true);
     try {
-      const scripts = await generateShortScript(story, language);
+      const scripts = await generateShortScript(apiKey, story, language);
       setShortScripts(scripts);
       updateHistoryItem({ shortScripts: scripts });
       setTimeout(() => {
