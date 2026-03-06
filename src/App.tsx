@@ -1286,7 +1286,7 @@ function App() {
                 <h2 className="text-lg font-semibold uppercase tracking-wide text-zinc-200">{t.distributionKit}</h2>
               </div>
               
-              <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+              <div className="flex flex-col gap-6">
                 {/* Social Metadata Column */}
                 <div className="bg-zinc-900/50 rounded-lg p-5 border border-zinc-800 h-full flex flex-col">
                   <div className="flex justify-between items-center mb-4">
@@ -1371,9 +1371,10 @@ function App() {
                   </div>
 
                   {shortScripts.length > 0 ? (
-                    <div className="animate-fadeIn flex-1 flex flex-col space-y-4 overflow-y-auto max-h-[500px] pr-2 custom-scrollbar">
-                      {shortScripts.map((item, idx) => (
-                        <div key={idx} className="bg-zinc-950 rounded border border-zinc-800 p-4 flex flex-col gap-3 group relative">
+                    <div className="animate-fadeIn flex-1 flex flex-col">
+                      <div className="flex flex-row gap-4 overflow-x-auto pb-4 custom-scrollbar">
+                        {shortScripts.map((item, idx) => (
+                          <div key={idx} className="bg-zinc-950 rounded border border-zinc-800 p-4 flex flex-col gap-3 group relative min-w-[300px]">
                           <div className="flex justify-between items-center">
                             <div className="flex items-center gap-2">
                               <span className="text-[10px] font-bold text-indigo-400 uppercase tracking-widest">{item.style}</span>
@@ -1395,6 +1396,7 @@ function App() {
                           </p>
                         </div>
                       ))}
+                      </div>
                       <div className="mt-2 flex items-center gap-2 text-[10px] text-zinc-500 uppercase tracking-wider font-bold">
                         <div className="h-1.5 w-1.5 rounded-full bg-indigo-500 animate-pulse"></div>
                         3 Styles • Optimized for 20-40s
