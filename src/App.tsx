@@ -31,7 +31,9 @@ const Icons = {
   Image: <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><circle cx="8.5" cy="8.5" r="1.5"></circle><polyline points="21 15 16 10 5 21"></polyline></svg>,
   Tag: <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"></path><line x1="7" y1="7" x2="7.01" y2="7"></line></svg>,
   History: <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"></path><path d="M3 3v5h5"></path><path d="M12 7v5l4 2"></path></svg>,
-  Trash: <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M3 6h18"></path><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"></path><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"></path></svg>
+  Trash: <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M3 6h18"></path><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"></path><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"></path></svg>,
+  Brain: <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M12 5a3 3 0 1 0-5.997.125 4 4 0 0 0-2.526 5.77 4 4 0 0 0 .52 5.586 3 3 0 1 0 5.83 1.366V17a2 2 0 1 0 4 0v-.153a3 3 0 1 0 5.83-1.366 4 4 0 0 0 .52-5.586 4 4 0 0 0-2.526-5.77A3 3 0 1 0 12 5z"/><path d="M9 13a3 3 0 1 0 6 0"/></svg>,
+  Baby: <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M9 12h.01"/><path d="M15 12h.01"/><path d="M10 16c.5.3 1.2.5 2 .5s1.5-.2 2-.5"/><path d="M19 6.3a9 9 0 0 1 1.8 3.9 2 2 0 0 1 0 3.6 9 9 0 0 1-17.6 0 2 2 0 0 1 0-3.6A9 9 0 0 1 5 6.3"/><path d="M12 2v2"/><path d="M12 8a2 2 0 1 1 0-4 2 2 0 0 1 0 4Z"/></svg>
 };
 
 // Localized Strings Map
@@ -82,7 +84,9 @@ const translations = {
       [ThemeType.ROMANCE]: "Emotional connections, drama, and relationships.",
       [ThemeType.COMEDY]: "Lighthearted, funny, everyday situations.",
       [ThemeType.SCI_FI]: "Futuristic worlds, advanced tech, and space exploration.",
-      [ThemeType.FANTASY]: "Magic, mythical creatures, and supernatural elements."
+      [ThemeType.FANTASY]: "Magic, mythical creatures, and supernatural elements.",
+      [ThemeType.DARK_PSYCHOLOGY]: "Manipulation, human behavior, and dark secrets.",
+      [ThemeType.CHILDREN_STORY]: "Moral lessons, fun adventures, and bedtime stories."
     },
     durations: {
       [DurationType.SHORT]: "< 60s (TikTok/Reels)",
@@ -113,7 +117,9 @@ const translations = {
       [ThemeType.ROMANCE]: "Romance",
       [ThemeType.COMEDY]: "Comedy",
       [ThemeType.SCI_FI]: "Sci-Fi",
-      [ThemeType.FANTASY]: "Fantasy"
+      [ThemeType.FANTASY]: "Fantasy",
+      [ThemeType.DARK_PSYCHOLOGY]: "Dark Psych",
+      [ThemeType.CHILDREN_STORY]: "Kids Story"
     },
     distributionKit: "Distribution Kit",
     generateMetadata: "Generate Metadata",
@@ -307,7 +313,9 @@ const translations = {
       [ThemeType.ROMANCE]: "Koneksi emosional, drama, dan hubungan.",
       [ThemeType.COMEDY]: "Ringan, lucu, situasi sehari-hari.",
       [ThemeType.SCI_FI]: "Dunia futuristik, teknologi canggih, dan luar angkasa.",
-      [ThemeType.FANTASY]: "Sihir, makhluk mitos, dan elemen supranatural."
+      [ThemeType.FANTASY]: "Sihir, makhluk mitos, dan elemen supranatural.",
+      [ThemeType.DARK_PSYCHOLOGY]: "Manipulasi, perilaku manusia, dan rahasia gelap.",
+      [ThemeType.CHILDREN_STORY]: "Pesan moral, petualangan seru, dan cerita pengantar tidur."
     },
     durations: {
       [DurationType.SHORT]: "< 60s (TikTok/Reels/Shorts)",
@@ -338,7 +346,9 @@ const translations = {
       [ThemeType.ROMANCE]: "Romansa",
       [ThemeType.COMEDY]: "Komedi",
       [ThemeType.SCI_FI]: "Sci-Fi",
-      [ThemeType.FANTASY]: "Fantasi"
+      [ThemeType.FANTASY]: "Fantasi",
+      [ThemeType.DARK_PSYCHOLOGY]: "Psikologi Gelap",
+      [ThemeType.CHILDREN_STORY]: "Cerita Anak"
     },
     distributionKit: "Kit Distribusi",
     generateMetadata: "Buat Metadata",
@@ -872,6 +882,8 @@ function App() {
     { type: ThemeType.COMEDY, icon: Icons.Sparkles },
     { type: ThemeType.SCI_FI, icon: Icons.Rocket },
     { type: ThemeType.FANTASY, icon: Icons.Castle },
+    { type: ThemeType.DARK_PSYCHOLOGY, icon: Icons.Brain },
+    { type: ThemeType.CHILDREN_STORY, icon: Icons.Baby },
   ];
 
   // Sort theme list alphabetically based on the displayed name (localized)
@@ -1242,7 +1254,6 @@ function App() {
                 title={t.frameworkLabels[story.framework as FrameworkType]?.hook || t.modules.hook}
                 icon={Icons.Hook}
                 content={story.hook.content}
-                visualPrompt={story.hook.visualPrompt}
                 metadata={story.hook.metadata as any}
                 colorClass="border-zinc-800"
                 onSave={(val) => updateModuleContent('hook', val)}
@@ -1252,7 +1263,6 @@ function App() {
                 title={t.frameworkLabels[story.framework as FrameworkType]?.context || t.modules.context}
                 icon={Icons.Context}
                 content={story.context.content}
-                visualPrompt={story.context.visualPrompt}
                 metadata={story.context.metadata as any}
                 colorClass="border-zinc-800"
                 onSave={(val) => updateModuleContent('context', val)}
@@ -1262,7 +1272,6 @@ function App() {
                 title={t.frameworkLabels[story.framework as FrameworkType]?.problem || t.modules.problem} 
                 icon={Icons.Problem}
                 content={story.problem.content}
-                visualPrompt={story.problem.visualPrompt}
                 metadata={story.problem.metadata as any}
                 colorClass="border-zinc-800"
                 onSave={(val) => updateModuleContent('problem', val)}
@@ -1272,7 +1281,6 @@ function App() {
                 title={t.frameworkLabels[story.framework as FrameworkType]?.escalation || t.modules.escalation}
                 icon={Icons.Escalation}
                 content={story.escalation.content}
-                visualPrompt={story.escalation.visualPrompt}
                 metadata={story.escalation.metadata as any}
                 colorClass="border-zinc-800"
                 onSave={(val) => updateModuleContent('escalation', val)}
@@ -1282,7 +1290,6 @@ function App() {
                 title={t.frameworkLabels[story.framework as FrameworkType]?.peak || t.modules.peak} 
                 icon={Icons.Peak}
                 content={story.peak.content}
-                visualPrompt={story.peak.visualPrompt}
                 metadata={story.peak.metadata as any}
                 colorClass="border-zinc-800"
                 onSave={(val) => updateModuleContent('peak', val)}
@@ -1292,7 +1299,6 @@ function App() {
                 title={t.frameworkLabels[story.framework as FrameworkType]?.resolution || t.modules.resolution} 
                 icon={Icons.Resolution}
                 content={story.resolution.content}
-                visualPrompt={story.resolution.visualPrompt}
                 metadata={story.resolution.metadata as any}
                 colorClass="border-zinc-800"
                 onSave={(val) => updateModuleContent('resolution', val)}
@@ -1302,7 +1308,6 @@ function App() {
                 title={t.frameworkLabels[story.framework as FrameworkType]?.cta || t.modules.cta} 
                 icon={Icons.CTA}
                 content={story.cta.content}
-                visualPrompt={story.cta.visualPrompt}
                 metadata={story.cta.metadata as any}
                 colorClass="border-zinc-800"
                 onSave={(val) => updateModuleContent('cta', val)}

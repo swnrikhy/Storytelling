@@ -18,7 +18,9 @@ export enum ThemeType {
   TRUE_CRIME = 'True Crime/Investigation',
   MYTHOLOGY = 'Mythology/Folklore',
   SCI_FI = 'Sci-Fi/Futurism',
-  FANTASY = 'Fantasy/Magic'
+  FANTASY = 'Fantasy/Magic',
+  DARK_PSYCHOLOGY = 'Dark Psychology/Manipulation',
+  CHILDREN_STORY = 'Children\'s Stories/Moral Lessons'
 }
 
 export enum DurationType {
@@ -44,7 +46,6 @@ export enum FrameworkType {
 export interface StoryModule<T> {
   metadata: T;
   content: string; // The actual narrative text for this section
-  visualPrompt: string; // A descriptive prompt for a visual/image for this section
 }
 
 export interface HookMetadata {
