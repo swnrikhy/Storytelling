@@ -31,7 +31,9 @@ const Icons = {
   Image: <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><circle cx="8.5" cy="8.5" r="1.5"></circle><polyline points="21 15 16 10 5 21"></polyline></svg>,
   Tag: <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"></path><line x1="7" y1="7" x2="7.01" y2="7"></line></svg>,
   History: <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"></path><path d="M3 3v5h5"></path><path d="M12 7v5l4 2"></path></svg>,
-  Trash: <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M3 6h18"></path><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"></path><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"></path></svg>
+  Trash: <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M3 6h18"></path><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"></path><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"></path></svg>,
+  Brain: <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M9.5 2A2.5 2.5 0 0 1 12 4.5v15a2.5 2.5 0 0 1-4.96.44 2.5 2.5 0 0 1-2.96-3.08 3 3 0 0 1-.34-5.58 2.5 2.5 0 0 1 1.32-4.24 2.5 2.5 0 0 1 4.44-2.04Z"/><path d="M14.5 2A2.5 2.5 0 0 0 12 4.5v15a2.5 2.5 0 0 0 4.96.44 2.5 2.5 0 0 0 2.96-3.08 3 3 0 0 0 .34-5.58 2.5 2.5 0 0 0-1.32-4.24 2.5 2.5 0 0 0-4.44-2.04Z"/></svg>,
+  Smile: <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><path d="M8 13a4 4 0 0 0 8 0"/><line x1="9" y1="9" x2="9.01" y2="9"/><line x1="15" y1="9" x2="15.01" y2="9"/></svg>
 };
 
 // Localized Strings Map
@@ -79,7 +81,9 @@ const translations = {
       [ThemeType.ROMANCE]: "Emotional connections, drama, and relationships.",
       [ThemeType.COMEDY]: "Lighthearted, funny, everyday situations.",
       [ThemeType.SCI_FI]: "Futuristic worlds, advanced tech, and space exploration.",
-      [ThemeType.FANTASY]: "Magic, mythical creatures, and supernatural elements."
+      [ThemeType.FANTASY]: "Magic, mythical creatures, and supernatural elements.",
+      [ThemeType.DARK_PSYCHOLOGY]: "Manipulation, influence, and the darker side of human behavior.",
+      [ThemeType.KIDS_STORIES]: "Fun, educational, and imaginative tales for children."
     },
     durations: {
       [DurationType.SHORT]: "< 60s (TikTok/Reels)",
@@ -110,7 +114,9 @@ const translations = {
       [ThemeType.ROMANCE]: "Romance",
       [ThemeType.COMEDY]: "Comedy",
       [ThemeType.SCI_FI]: "Sci-Fi",
-      [ThemeType.FANTASY]: "Fantasy"
+      [ThemeType.FANTASY]: "Fantasy",
+      [ThemeType.DARK_PSYCHOLOGY]: "Dark Psychology",
+      [ThemeType.KIDS_STORIES]: "Kids Stories"
     },
     distributionKit: "Distribution Kit",
     generateMetadata: "Generate Metadata",
@@ -296,7 +302,9 @@ const translations = {
       [ThemeType.ROMANCE]: "Koneksi emosional, drama, dan hubungan.",
       [ThemeType.COMEDY]: "Ringan, lucu, situasi sehari-hari.",
       [ThemeType.SCI_FI]: "Dunia futuristik, teknologi canggih, dan luar angkasa.",
-      [ThemeType.FANTASY]: "Sihir, makhluk mitos, dan elemen supranatural."
+      [ThemeType.FANTASY]: "Sihir, makhluk mitos, dan elemen supranatural.",
+      [ThemeType.DARK_PSYCHOLOGY]: "Manipulasi, pengaruh, dan sisi gelap perilaku manusia.",
+      [ThemeType.KIDS_STORIES]: "Cerita menyenangkan, mendidik, dan imajinatif untuk anak-anak."
     },
     durations: {
       [DurationType.SHORT]: "< 60s (TikTok/Reels/Shorts)",
@@ -327,7 +335,9 @@ const translations = {
       [ThemeType.ROMANCE]: "Romansa",
       [ThemeType.COMEDY]: "Komedi",
       [ThemeType.SCI_FI]: "Sci-Fi",
-      [ThemeType.FANTASY]: "Fantasi"
+      [ThemeType.FANTASY]: "Fantasi",
+      [ThemeType.DARK_PSYCHOLOGY]: "Psikologi Gelap",
+      [ThemeType.KIDS_STORIES]: "Cerita Anak"
     },
     distributionKit: "Kit Distribusi",
     generateMetadata: "Buat Metadata",
@@ -826,6 +836,8 @@ function App() {
     { type: ThemeType.COMEDY, icon: Icons.Sparkles },
     { type: ThemeType.SCI_FI, icon: Icons.Rocket },
     { type: ThemeType.FANTASY, icon: Icons.Castle },
+    { type: ThemeType.DARK_PSYCHOLOGY, icon: Icons.Brain },
+    { type: ThemeType.KIDS_STORIES, icon: Icons.Smile },
   ];
 
   // Sort theme list alphabetically based on the displayed name (localized)
