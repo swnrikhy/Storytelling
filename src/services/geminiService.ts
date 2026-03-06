@@ -3,12 +3,7 @@ import { ThemeType, FullStory, DurationType, Language, SocialMetadata, Thumbnail
 
 const getAI = () => {
   const manualKey = typeof window !== 'undefined' ? localStorage.getItem('gemini_api_key') : null;
-  const key = manualKey || process.env.API_KEY || process.env.GEMINI_API_KEY || import.meta.env.VITE_GEMINI_API_KEY;
-  
-  if (!key) {
-    throw new Error("API_KEY_MISSING");
-  }
-  
+  const key = manualKey || process.env.API_KEY || process.env.GEMINI_API_KEY;
   return new GoogleGenAI({ apiKey: key });
 };
 

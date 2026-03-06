@@ -142,5 +142,3 @@ export interface HistoryItem {
   thumbnailIdeas: ThumbnailIdeas | null;
   shortScripts: ShortScriptIdea[];
 }
-
-export type AiProvider = 'gemini' | 'openai';
