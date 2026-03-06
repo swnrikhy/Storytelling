@@ -79,9 +79,7 @@ const translations = {
       [ThemeType.ROMANCE]: "Emotional connections, drama, and relationships.",
       [ThemeType.COMEDY]: "Lighthearted, funny, everyday situations.",
       [ThemeType.SCI_FI]: "Futuristic worlds, advanced tech, and space exploration.",
-      [ThemeType.FANTASY]: "Magic, mythical creatures, and supernatural elements.",
-      [ThemeType.DARK_PSYCHOLOGY]: "Manipulation, influence, and the darker side of human behavior.",
-      [ThemeType.KIDS_STORIES]: "Fun, educational, and imaginative tales for children."
+      [ThemeType.FANTASY]: "Magic, mythical creatures, and supernatural elements."
     },
     durations: {
       [DurationType.SHORT]: "< 60s (TikTok/Reels)",
@@ -112,9 +110,7 @@ const translations = {
       [ThemeType.ROMANCE]: "Romance",
       [ThemeType.COMEDY]: "Comedy",
       [ThemeType.SCI_FI]: "Sci-Fi",
-      [ThemeType.FANTASY]: "Fantasy",
-      [ThemeType.DARK_PSYCHOLOGY]: "Dark Psychology",
-      [ThemeType.KIDS_STORIES]: "Kids Stories"
+      [ThemeType.FANTASY]: "Fantasy"
     },
     distributionKit: "Distribution Kit",
     generateMetadata: "Generate Metadata",
@@ -300,9 +296,7 @@ const translations = {
       [ThemeType.ROMANCE]: "Koneksi emosional, drama, dan hubungan.",
       [ThemeType.COMEDY]: "Ringan, lucu, situasi sehari-hari.",
       [ThemeType.SCI_FI]: "Dunia futuristik, teknologi canggih, dan luar angkasa.",
-      [ThemeType.FANTASY]: "Sihir, makhluk mitos, dan elemen supranatural.",
-      [ThemeType.DARK_PSYCHOLOGY]: "Manipulasi, pengaruh, dan sisi gelap perilaku manusia.",
-      [ThemeType.KIDS_STORIES]: "Cerita menyenangkan, mendidik, dan imajinatif untuk anak-anak."
+      [ThemeType.FANTASY]: "Sihir, makhluk mitos, dan elemen supranatural."
     },
     durations: {
       [DurationType.SHORT]: "< 60s (TikTok/Reels/Shorts)",
@@ -333,9 +327,7 @@ const translations = {
       [ThemeType.ROMANCE]: "Romansa",
       [ThemeType.COMEDY]: "Komedi",
       [ThemeType.SCI_FI]: "Sci-Fi",
-      [ThemeType.FANTASY]: "Fantasi",
-      [ThemeType.DARK_PSYCHOLOGY]: "Psikologi Gelap",
-      [ThemeType.KIDS_STORIES]: "Cerita Anak"
+      [ThemeType.FANTASY]: "Fantasi"
     },
     distributionKit: "Kit Distribusi",
     generateMetadata: "Buat Metadata",

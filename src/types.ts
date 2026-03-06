@@ -13,9 +13,7 @@ export enum ThemeType {
   TRUE_CRIME = 'True Crime/Investigation',
   MYTHOLOGY = 'Mythology/Folklore',
   SCI_FI = 'Sci-Fi/Futurism',
-  FANTASY = 'Fantasy/Magic',
-  DARK_PSYCHOLOGY = 'Dark Psychology',
-  KIDS_STORIES = 'Kids Stories'
+  FANTASY = 'Fantasy/Magic'
 }
 
 export enum DurationType {
